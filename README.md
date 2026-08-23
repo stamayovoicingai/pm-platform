@@ -1,0 +1,98 @@
+# PM Platform
+
+Centro de control de producto de VoicingAI. Next.js 16 + Postgres, pensado para correr
+en un contenedor de Easypanel.
+
+Documentación de producto en `docs/`: concepto, modelo de datos y alcance por fases.
+
+## Estado
+
+**Fase 1 — Registrar.** Clientes con fase, timeline de eventos, hitos con historial de
+cambios de fecha, compromisos y contactos.
+
+Pendiente: métricas diarias y dashboard (Fase 2), ingesta de transcripts con LLM
+(Fase 3), stack histórico (Fase 4), integración con Slack.
+
+## Desarrollo local
+
+```bash
+npm install
+cp .env.example .env.local     # rellena DATABASE_URL, SESSION_SECRET, PM_EMAIL, PM_PASSWORD
+npm run db:migrate
+npm run db:seed
+npm run dev
+```
+
+`SESSION_SECRET` con `openssl rand -base64 48`.
+
+## Despliegue en Easypanel
+
+### 1. Servicio de Postgres
+
+Crea un servicio Postgres en tu proyecto de Easypanel. Anota el nombre del servicio: la
+app lo alcanza por el host interno, no por `localhost`.
+
+**Configura los backups automáticos antes de meter datos reales.** Un Postgres en
+contenedor sin backup es una pérdida de datos esperando su turno.
+
+### 2. Servicio de la app
+
+Crea un servicio de tipo App apuntando al repo de GitHub. Easypanel detecta el
+`Dockerfile` de la raíz.
+
+Variables de entorno:
+
+| Variable | Valor |
+|---|---|
+| `DATABASE_URL` | `postgres://usuario:clave@<servicio-postgres>:5432/pm_platform` |
+| `SESSION_SECRET` | cadena aleatoria de 32+ caracteres |
+| `TZ_APP` | `America/Bogota` |
+| `PM_EMAIL` / `PM_PASSWORD` / `PM_NOMBRE` | solo para la semilla inicial |
+
+Asigna el dominio y deja que Easypanel emita el certificado.
+
+### 3. Migrar y sembrar
+
+Tras el primer despliegue, desde la consola del contenedor:
+
+```bash
+node_modules/.bin/tsx db/migrate.ts
+node_modules/.bin/tsx db/seed.ts
+```
+
+La migración es idempotente: registra lo aplicado en la tabla `migracion` y no repite.
+La semilla también — se puede volver a correr para cambiar la contraseña.
+
+## Estructura
+
+```
+app/
+  (app)/            páginas autenticadas — Hoy, Clientes, Hitos, Compromisos
+  login/            entrada
+  acciones.ts       server actions (toda la escritura pasa por aquí)
+components/         piezas de UI reutilizables
+lib/
+  db.ts             pool de Postgres y helper de transacciones
+  auth.ts           sesión con cookie firmada
+  dominio.ts        enum del dominio con etiquetas y colores
+  fechas.ts         formato y aritmética de fechas en la zona de la app
+  consultas/        lectura, una por agregado
+db/
+  migrations/       SQL numerado, se aplica en orden
+  migrate.ts        aplicador idempotente
+  seed.ts           usuario, partner, reglas y catálogo iniciales
+proxy.ts            protege las rutas verificando la cookie de sesión
+```
+
+## Decisiones que conviene no deshacer
+
+**El timeline es la espina dorsal.** Incidencias, decisiones, despliegues, cambios de
+stack y cambios de fase son todos `evento` con fecha. Eso es lo que permitirá superponer
+lo que pasó sobre las curvas de métricas en la Fase 2.
+
+**Compromiso ≠ nota.** Solo hitos y compromisos disparan alertas. Si las notas también
+alertaran, el canal de Slack sería ruido y se dejaría de leer.
+
+**Las fechas de hito no se sobreescriben.** Moverlas exige un motivo y deja fila en
+`hito_cambio_fecha`. Es lo que a los seis meses permite decir con datos por qué se
+retrasan las salidas.
