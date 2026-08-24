@@ -103,8 +103,8 @@ alertaran, el canal de Slack sería ruido y se dejaría de leer.
 `hito_cambio_fecha`. Es lo que a los seis meses permite decir con datos por qué se
 retrasan las salidas.
 
-**Solo algunos eventos tienen estado.** Incidencia, bloqueo, riesgo y cambio de scope
-describen algo vivo: nacen abiertos y se cierran con una actualización. Nota, decisión,
-despliegue y feedback ya ocurrieron y no tienen nada que seguir, así que su estado es
-`null`. Darle estado a todo llenaría la vista de asuntos abiertos de cosas que nadie va
-a cerrar nunca.
+**Tipo y seguimiento son ejes independientes.** El tipo dice qué clase de cosa es un
+registro; `estado_seguimiento` dice si sigue viva. Un despliegue puede estar pendiente y
+una incidencia puede nacer resuelta, así que quien registra decide, con el tipo aportando
+solo el valor por defecto de la casilla. Un `estado_seguimiento` nulo significa que no se
+persigue, no que no pueda perseguirse.

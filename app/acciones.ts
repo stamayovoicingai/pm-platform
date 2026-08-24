@@ -21,7 +21,6 @@ import {
   LADOS,
   ESTADOS_SEGUIMIENTO,
   ETIQUETA_FASE,
-  esSeguible,
 } from "@/lib/dominio";
 
 const texto = z.string().trim().min(1);
@@ -139,7 +138,10 @@ export async function crearEvento(datos: FormData) {
     severidad: campo(datos, "severidad") || "info",
   });
 
-  // Los tipos que describen algo vivo nacen abiertos; el resto sin estado.
+  // El tipo dice qué clase de cosa es; el seguimiento, si sigue viva. Son ejes
+  // distintos: un despliegue pendiente de coordinar con el cliente necesita
+  // seguimiento, y una incidencia ya resuelta al registrarla no.
+  const seguir = campo(datos, "seguir") === "si";
   const creado = await uno<{ id: string }>(
     `insert into evento (cliente_id, tipo, titulo, cuerpo, fecha_evento, severidad,
                          estado_seguimiento, origen)
@@ -152,7 +154,7 @@ export async function crearEvento(datos: FormData) {
       v.cuerpo,
       v.fecha_evento,
       v.severidad,
-      esSeguible(v.tipo) ? "abierto" : null,
+      seguir ? "abierto" : null,
     ],
   );
 
@@ -208,6 +210,21 @@ export async function actualizarEvento(datos: FormData) {
   });
 
   revalidatePath(`/clientes/${v.cliente_id}`);
+  revalidatePath("/");
+}
+
+/** Abre el seguimiento de un evento que se registró sin él. */
+export async function activarSeguimiento(datos: FormData) {
+  const eventoId = z.uuid().parse(campo(datos, "evento_id"));
+  const clienteId = z.uuid().parse(campo(datos, "cliente_id"));
+
+  await sql(
+    `update evento set estado_seguimiento = 'abierto'
+     where id = $1 and estado_seguimiento is null`,
+    [eventoId],
+  );
+
+  revalidatePath(`/clientes/${clienteId}`);
   revalidatePath("/");
 }
 

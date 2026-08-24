@@ -9,6 +9,7 @@ import {
   ETIQUETA_EVENTO,
   ETIQUETA_SEVERIDAD,
   colorEvento,
+  seguirPorDefecto,
   type TipoEvento,
 } from "@/lib/dominio";
 
@@ -26,6 +27,7 @@ export default function FormularioEvento({
 }) {
   const formulario = useRef<HTMLFormElement>(null);
   const [tipo, setTipo] = useState<TipoEvento>("nota");
+  const [seguir, setSeguir] = useState(seguirPorDefecto("nota"));
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,6 +41,7 @@ export default function FormularioEvento({
           await crearEvento(datos);
           formulario.current?.reset();
           setTipo("nota");
+          setSeguir(seguirPorDefecto("nota"));
         } catch (e) {
           setError(e instanceof Error ? e.message : "No se pudo registrar");
         } finally {
@@ -49,6 +52,7 @@ export default function FormularioEvento({
     >
       <input type="hidden" name="cliente_id" value={clienteId} />
       <input type="hidden" name="tipo" value={tipo} />
+      <input type="hidden" name="seguir" value={seguir ? "si" : "no"} />
 
       <div className="flex flex-wrap gap-1.5">
         {TIPOS_EVENTO_MANUAL.map((t) => {
@@ -58,7 +62,10 @@ export default function FormularioEvento({
             <button
               key={t}
               type="button"
-              onClick={() => setTipo(t)}
+              onClick={() => {
+                setTipo(t);
+                setSeguir(seguirPorDefecto(t));
+              }}
               className="pastilla"
               style={{
                 background: activo ? color.fondo : "transparent",
@@ -117,6 +124,19 @@ export default function FormularioEvento({
             ))}
           </select>
         </div>
+        <label
+          className="flex items-center gap-1.5 text-sm cursor-pointer select-none pb-2"
+          style={{ color: "var(--texto-2)" }}
+          title="Queda como asunto abierto hasta que lo cierres"
+        >
+          <input
+            type="checkbox"
+            checked={seguir}
+            onChange={(e) => setSeguir(e.target.checked)}
+          />
+          Hacer seguimiento
+        </label>
+
         <button type="submit" className="boton ml-auto" disabled={guardando}>
           {guardando ? "Guardando…" : "Registrar"}
         </button>

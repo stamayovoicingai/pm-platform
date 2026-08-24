@@ -19,18 +19,23 @@ Si todo fuera compromiso, el aviso sería ruido y dejarías de mirarlo.
 
 ## Seguimiento de un evento
 
-Una incidencia o un bloqueo no son un punto en el tiempo: siguen vivos hasta que dejan
-de estarlo. Por eso los eventos de tipo **incidencia, bloqueo, riesgo y cambio de scope**
-nacen marcados como *abiertos* y tienen debajo un hilo de actualizaciones.
+Hay cosas que no son un punto en el tiempo: siguen vivas hasta que dejan de estarlo. Al
+registrar, la casilla **Hacer seguimiento** decide si ese registro queda como asunto
+abierto.
 
-Cada vez que sepas algo nuevo, añades una actualización con lo que pasó. Si eso cambia la
-situación, eliges también el estado nuevo: *en curso*, *resuelto* o *descartado*. La
-actualización guarda el cambio, de forma que el hilo se lee como una historia — qué se
-supo, cuándo, y qué cambió.
+El tipo y el seguimiento son ejes distintos. El tipo dice *qué clase de cosa es*; el
+seguimiento, *si sigue viva*. Un despliegue pendiente de coordinar con el cliente
+necesita seguimiento, y una incidencia que ya estaba resuelta cuando la registras, no.
+Por eso la casilla viene marcada por defecto en incidencia, bloqueo, riesgo y cambio de
+scope, pero puedes cambiarla siempre — en cualquier tipo.
 
-Los demás tipos (nota, decisión, despliegue, feedback) ya ocurrieron y no tienen estado.
-Darle seguimiento a todo llenaría la vista de *asuntos abiertos* de cosas que nadie va a
-cerrar nunca.
+Si registraste algo sin seguimiento y luego resulta que sí hay que perseguirlo, en la
+entrada del timeline tienes **Hacer seguimiento** para abrirlo.
+
+Con el seguimiento activo aparece un hilo de actualizaciones. Cada vez que sepas algo
+nuevo, añades una línea con lo que pasó; si eso cambia la situación, eliges también el
+estado nuevo: *en curso*, *resuelto* o *descartado*. La actualización guarda de dónde
+venía, así que el hilo se lee como una historia.
 
 En **Hoy**, la sección *Asuntos abiertos* reúne todo lo que sigue sin cerrarse de todos
 los clientes, con lo más grave arriba.

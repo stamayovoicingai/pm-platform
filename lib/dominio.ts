@@ -188,8 +188,10 @@ export const ETIQUETA_SEGUIMIENTO: Record<EstadoSeguimiento, string> = {
 };
 
 /**
- * Solo estos tipos describen algo que sigue vivo y admite seguimiento.
- * Una decisión o un despliegue ya ocurrieron: no hay nada que actualizar.
+ * Tipos que normalmente describen algo que sigue vivo. Solo determinan si la
+ * casilla de seguimiento viene marcada por defecto: cualquier evento puede
+ * llevar seguimiento, porque el tipo dice qué clase de cosa es y el estado
+ * dice si sigue abierta, y son cosas distintas.
  */
 export const TIPOS_SEGUIBLES: TipoEvento[] = [
   "incidencia",
@@ -198,7 +200,7 @@ export const TIPOS_SEGUIBLES: TipoEvento[] = [
   "cambio_scope",
 ];
 
-export function esSeguible(tipo: TipoEvento): boolean {
+export function seguirPorDefecto(tipo: TipoEvento): boolean {
   return TIPOS_SEGUIBLES.includes(tipo);
 }
 

@@ -1,5 +1,10 @@
 import Pastilla from "./Pastilla";
-import { actualizarEvento, subirAdjunto, borrarAdjunto } from "@/app/acciones";
+import {
+  actualizarEvento,
+  subirAdjunto,
+  borrarAdjunto,
+  activarSeguimiento,
+} from "@/app/acciones";
 import {
   LIMITE_BYTES,
   MAX_ARCHIVOS_POR_SUBIDA,
@@ -123,6 +128,21 @@ export default function EventoLinea({
                 </li>
               ))}
             </ul>
+          )}
+
+          {!seguible && (
+            <form action={activarSeguimiento} className="mt-2">
+              <input type="hidden" name="evento_id" value={evento.id} />
+              <input type="hidden" name="cliente_id" value={evento.cliente_id} />
+              <button
+                type="submit"
+                className="text-xs"
+                style={{ color: "var(--texto-2)" }}
+                title="Pasa a asuntos abiertos hasta que lo cierres"
+              >
+                Hacer seguimiento
+              </button>
+            </form>
           )}
 
           <details className="mt-2">
