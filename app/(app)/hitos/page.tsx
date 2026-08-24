@@ -1,31 +1,34 @@
 import Link from "next/link";
 import { todosLosHitos } from "@/lib/consultas/hitos";
+import { cambiarEstadoHito } from "@/app/acciones";
 import Pastilla from "@/components/Pastilla";
+import SelectEnvia from "@/components/SelectEnvia";
 import { Vacio } from "@/components/Seccion";
-import { ETIQUETA_HITO, ETIQUETA_ESTADO_HITO } from "@/lib/dominio";
+import { ETIQUETA_HITO, ESTADOS_HITO, ETIQUETA_ESTADO_HITO } from "@/lib/dominio";
 import { fechaCorta, textoRelativo, diasHasta } from "@/lib/fechas";
 
 export const dynamic = "force-dynamic";
+
+const OPCIONES = ESTADOS_HITO.map((e) => ({ valor: e, etiqueta: ETIQUETA_ESTADO_HITO[e] }));
 
 export default async function Hitos() {
   const hitos = await todosLosHitos();
   const abiertos = hitos.filter((h) => h.estado === "pendiente" || h.estado === "en_curso");
   const cerrados = hitos.filter((h) => h.estado !== "pendiente" && h.estado !== "en_curso");
   const movidos = hitos.filter((h) => h.veces_movido > 0);
-
-  const promedioMovimientos =
+  const media =
     movidos.length > 0
-      ? movidos.reduce((suma, h) => suma + h.veces_movido, 0) / movidos.length
+      ? movidos.reduce((s, h) => s + h.veces_movido, 0) / movidos.length
       : 0;
 
   return (
     <>
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Hitos</h1>
-        <p className="text-sm mt-1" style={{ color: "var(--texto-2)" }}>
+      <div className="mb-5">
+        <h1 className="text-xl font-semibold tracking-tight">Hitos</h1>
+        <p className="text-sm mt-0.5" style={{ color: "var(--texto-2)" }}>
           {abiertos.length} abiertos
           {movidos.length > 0 &&
-            ` · ${movidos.length} con fecha movida (${promedioMovimientos.toFixed(1)} veces de media)`}
+            ` · ${movidos.length} con fecha movida, ${media.toFixed(1)} veces de media`}
         </p>
       </div>
 
@@ -37,62 +40,70 @@ export default async function Hitos() {
             const dias = diasHasta(h.fecha_objetivo);
             const urgente = dias !== null && dias <= 3;
             return (
-              <Link
+              <div
                 key={h.id}
-                href={`/clientes/${h.cliente_id}`}
-                className="flex items-center gap-3 px-4 py-3 hover:bg-[var(--superficie-2)] transition-colors"
+                className="flex items-center gap-3 px-3 py-2 hover:bg-[var(--superficie-2)] transition-colors"
                 style={{ borderColor: "var(--borde)" }}
               >
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-medium">{h.titulo}</span>
-                    <Pastilla>{ETIQUETA_HITO[h.tipo]}</Pastilla>
-                    {h.veces_movido > 0 && (
-                      <Pastilla fondo="var(--oportunidad-suave)" texto="var(--oportunidad)">
-                        movido {h.veces_movido}×
-                      </Pastilla>
-                    )}
-                  </div>
-                  <p className="text-xs mt-0.5" style={{ color: "var(--texto-3)" }}>
-                    {h.cliente_nombre}
-                  </p>
-                </div>
-                <div className="text-right shrink-0">
-                  <div className="text-sm font-medium">{fechaCorta(h.fecha_objetivo)}</div>
-                  <div
-                    className="text-xs"
-                    style={{ color: urgente ? "var(--riesgo)" : "var(--texto-3)" }}
-                  >
-                    {textoRelativo(h.fecha_objetivo)}
-                  </div>
-                </div>
-              </Link>
+                <Link
+                  href={`/clientes/${h.cliente_id}/hitos`}
+                  className="text-xs shrink-0 w-32 truncate"
+                  style={{ color: "var(--texto-3)" }}
+                >
+                  {h.cliente_nombre}
+                </Link>
+
+                <span className="text-sm flex-1 min-w-0 truncate">{h.titulo}</span>
+
+                <Pastilla>{ETIQUETA_HITO[h.tipo]}</Pastilla>
+
+                {h.veces_movido > 0 && (
+                  <Pastilla fondo="var(--oportunidad-suave)" texto="var(--oportunidad)">
+                    {h.veces_movido}×
+                  </Pastilla>
+                )}
+
+                <span
+                  className="text-xs shrink-0 w-28 text-right"
+                  style={{ color: urgente ? "var(--riesgo)" : "var(--texto-3)" }}
+                  title={fechaCorta(h.fecha_objetivo)}
+                >
+                  {fechaCorta(h.fecha_objetivo)} · {textoRelativo(h.fecha_objetivo)}
+                </span>
+
+                <form action={cambiarEstadoHito} className="shrink-0">
+                  <input type="hidden" name="id" value={h.id} />
+                  <input type="hidden" name="cliente_id" value={h.cliente_id} />
+                  <SelectEnvia name="estado" defaultValue={h.estado} opciones={OPCIONES} />
+                </form>
+              </div>
             );
           })}
         </div>
       )}
 
       {cerrados.length > 0 && (
-        <details className="mt-5">
-          <summary
-            className="text-xs cursor-pointer select-none"
-            style={{ color: "var(--texto-3)" }}
-          >
+        <details className="mt-4">
+          <summary className="text-xs cursor-pointer select-none" style={{ color: "var(--texto-3)" }}>
             {cerrados.length} cerrado{cerrados.length === 1 ? "" : "s"}
           </summary>
           <div className="tarjeta divide-y mt-2" style={{ borderColor: "var(--borde)" }}>
             {cerrados.map((h) => (
-              <Link
+              <div
                 key={h.id}
-                href={`/clientes/${h.cliente_id}`}
-                className="flex items-center justify-between gap-3 px-4 py-2.5"
+                className="flex items-center gap-3 px-3 py-2 text-sm"
                 style={{ borderColor: "var(--borde)", color: "var(--texto-2)" }}
               >
-                <span className="text-sm line-through">{h.titulo}</span>
-                <span className="text-xs shrink-0" style={{ color: "var(--texto-3)" }}>
-                  {h.cliente_nombre} · {ETIQUETA_ESTADO_HITO[h.estado]}
+                <span className="text-xs shrink-0 w-32 truncate" style={{ color: "var(--texto-3)" }}>
+                  {h.cliente_nombre}
                 </span>
-              </Link>
+                <span className="line-through flex-1 min-w-0 truncate">{h.titulo}</span>
+                <form action={cambiarEstadoHito} className="shrink-0">
+                  <input type="hidden" name="id" value={h.id} />
+                  <input type="hidden" name="cliente_id" value={h.cliente_id} />
+                  <SelectEnvia name="estado" defaultValue={h.estado} opciones={OPCIONES} />
+                </form>
+              </div>
             ))}
           </div>
         </details>

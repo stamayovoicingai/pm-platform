@@ -150,6 +150,27 @@ export const ETIQUETA_STACK: Record<CategoriaStack, string> = {
   vector_db: "Base vectorial",
 };
 
+/** Color de la fase, para el punto del sidebar y las pastillas. */
+export function colorFase(fase: Fase): { fondo: string; texto: string; punto: string } {
+  switch (fase) {
+    case "produccion":
+      return { fondo: "var(--acento-suave)", texto: "var(--acento)", punto: "var(--acento)" };
+    case "uat":
+    case "qa":
+      return {
+        fondo: "var(--oportunidad-suave)",
+        texto: "var(--oportunidad)",
+        punto: "var(--oportunidad)",
+      };
+    default:
+      return {
+        fondo: "var(--superficie-2)",
+        texto: "var(--texto-2)",
+        punto: "var(--texto-3)",
+      };
+  }
+}
+
 /** Color de la pastilla según el tipo de evento. */
 export function colorEvento(tipo: TipoEvento): { fondo: string; texto: string } {
   switch (tipo) {

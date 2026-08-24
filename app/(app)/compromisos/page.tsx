@@ -2,11 +2,17 @@ import Link from "next/link";
 import { todosLosCompromisos } from "@/lib/consultas/compromisos";
 import { cambiarEstadoCompromiso } from "@/app/acciones";
 import Pastilla from "@/components/Pastilla";
+import SelectEnvia from "@/components/SelectEnvia";
 import { Vacio } from "@/components/Seccion";
-import { ETIQUETA_LADO } from "@/lib/dominio";
-import { textoRelativo, diasHasta } from "@/lib/fechas";
+import { ETIQUETA_LADO, ESTADOS_COMPROMISO, ETIQUETA_ESTADO_COMPROMISO } from "@/lib/dominio";
+import { textoRelativo, diasHasta, fechaCorta } from "@/lib/fechas";
 
 export const dynamic = "force-dynamic";
+
+const OPCIONES = ESTADOS_COMPROMISO.map((e) => ({
+  valor: e,
+  etiqueta: ETIQUETA_ESTADO_COMPROMISO[e],
+}));
 
 export default async function Compromisos() {
   const todos = await todosLosCompromisos();
@@ -18,9 +24,9 @@ export default async function Compromisos() {
 
   return (
     <>
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Compromisos</h1>
-        <p className="text-sm mt-1" style={{ color: "var(--texto-2)" }}>
+      <div className="mb-5">
+        <h1 className="text-xl font-semibold tracking-tight">Compromisos</h1>
+        <p className="text-sm mt-0.5" style={{ color: "var(--texto-2)" }}>
           {abiertos.length} abiertos · {vencidos.length} vencidos
         </p>
       </div>
@@ -35,34 +41,33 @@ export default async function Compromisos() {
             return (
               <div
                 key={c.id}
-                className="flex items-center gap-3 px-4 py-3"
+                className="flex items-center gap-3 px-3 py-2 hover:bg-[var(--superficie-2)] transition-colors"
                 style={{ borderColor: "var(--borde)" }}
               >
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm">{c.descripcion}</span>
-                    <Pastilla>{ETIQUETA_LADO[c.lado]}</Pastilla>
-                    {vencido && (
-                      <Pastilla fondo="var(--riesgo-suave)" texto="var(--riesgo)">
-                        vencido
-                      </Pastilla>
-                    )}
-                  </div>
-                  <p className="text-xs mt-0.5" style={{ color: "var(--texto-3)" }}>
-                    <Link href={`/clientes/${c.cliente_id}`} className="hover:underline">
-                      {c.cliente_nombre}
-                    </Link>
-                    {c.responsable_nombre ? ` · ${c.responsable_nombre}` : ""}
-                    {c.fecha_limite ? ` · ${textoRelativo(c.fecha_limite)}` : " · sin fecha"}
-                  </p>
-                </div>
+                <Link
+                  href={`/clientes/${c.cliente_id}/compromisos`}
+                  className="text-xs shrink-0 w-32 truncate"
+                  style={{ color: "var(--texto-3)" }}
+                >
+                  {c.cliente_nombre}
+                </Link>
+
+                <span className="text-sm flex-1 min-w-0 truncate">{c.descripcion}</span>
+
+                <Pastilla>{ETIQUETA_LADO[c.lado]}</Pastilla>
+
+                <span
+                  className="text-xs shrink-0 w-24 text-right"
+                  style={{ color: vencido ? "var(--riesgo)" : "var(--texto-3)" }}
+                  title={c.fecha_limite ? fechaCorta(c.fecha_limite) : undefined}
+                >
+                  {c.fecha_limite ? textoRelativo(c.fecha_limite) : "sin fecha"}
+                </span>
+
                 <form action={cambiarEstadoCompromiso} className="shrink-0">
                   <input type="hidden" name="id" value={c.id} />
                   <input type="hidden" name="cliente_id" value={c.cliente_id} />
-                  <input type="hidden" name="estado" value="cumplido" />
-                  <button type="submit" className="boton-suave text-xs">
-                    Cumplido
-                  </button>
+                  <SelectEnvia name="estado" defaultValue={c.estado} opciones={OPCIONES} />
                 </form>
               </div>
             );
@@ -71,24 +76,26 @@ export default async function Compromisos() {
       )}
 
       {cerrados.length > 0 && (
-        <details className="mt-5">
-          <summary
-            className="text-xs cursor-pointer select-none"
-            style={{ color: "var(--texto-3)" }}
-          >
+        <details className="mt-4">
+          <summary className="text-xs cursor-pointer select-none" style={{ color: "var(--texto-3)" }}>
             {cerrados.length} cerrado{cerrados.length === 1 ? "" : "s"}
           </summary>
           <div className="tarjeta divide-y mt-2" style={{ borderColor: "var(--borde)" }}>
             {cerrados.map((c) => (
               <div
                 key={c.id}
-                className="px-4 py-2.5 text-sm flex items-center justify-between gap-3"
+                className="px-3 py-2 text-sm flex items-center gap-3"
                 style={{ borderColor: "var(--borde)", color: "var(--texto-2)" }}
               >
-                <span className="line-through">{c.descripcion}</span>
-                <span className="text-xs shrink-0" style={{ color: "var(--texto-3)" }}>
+                <span className="text-xs shrink-0 w-32 truncate" style={{ color: "var(--texto-3)" }}>
                   {c.cliente_nombre}
                 </span>
+                <span className="line-through flex-1 min-w-0 truncate">{c.descripcion}</span>
+                <form action={cambiarEstadoCompromiso} className="shrink-0">
+                  <input type="hidden" name="id" value={c.id} />
+                  <input type="hidden" name="cliente_id" value={c.cliente_id} />
+                  <SelectEnvia name="estado" defaultValue={c.estado} opciones={OPCIONES} />
+                </form>
               </div>
             ))}
           </div>

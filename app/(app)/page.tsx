@@ -49,8 +49,8 @@ export default async function Hoy() {
 
   return (
     <>
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold tracking-tight">Hoy</h1>
+      <div className="mb-6">
+        <h1 className="text-xl font-semibold tracking-tight">Hoy</h1>
         <p className="text-sm mt-1" style={{ color: "var(--texto-2)" }}>
           {hitos.length} hito{hitos.length === 1 ? "" : "s"} en 30 días ·{" "}
           {vencidos.length} compromiso{vencidos.length === 1 ? "" : "s"} vencido
@@ -88,7 +88,7 @@ export default async function Hoy() {
               return (
                 <Link
                   key={h.id}
-                  href={`/clientes/${h.cliente_id}`}
+                  href={`/clientes/${h.cliente_id}/hitos`}
                   className="flex items-center gap-3 px-4 py-3 hover:bg-[var(--superficie-2)] transition-colors"
                   style={{ borderColor: "var(--borde)" }}
                 >
@@ -134,7 +134,7 @@ export default async function Hoy() {
               return (
                 <Link
                   key={c.id}
-                  href={`/clientes/${c.cliente_id}`}
+                  href={`/clientes/${c.cliente_id}/compromisos`}
                   className="flex items-center gap-3 px-4 py-3 hover:bg-[var(--superficie-2)] transition-colors"
                   style={{ borderColor: "var(--borde)" }}
                 >
@@ -192,7 +192,7 @@ export default async function Hoy() {
               return (
                 <Link
                   key={e.id}
-                  href={`/clientes/${e.cliente_id}`}
+                  href={`/clientes/${e.cliente_id}/timeline`}
                   className="flex items-start gap-3 px-4 py-3 hover:bg-[var(--superficie-2)] transition-colors"
                   style={{ borderColor: "var(--borde)" }}
                 >
