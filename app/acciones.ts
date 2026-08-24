@@ -3,7 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import bcrypt from "bcryptjs";
 import { sql, uno, enTransaccion } from "@/lib/db";
+import { sesionActual } from "@/lib/auth";
 import {
   LIMITE_BYTES,
   MAX_ARCHIVOS_POR_SUBIDA,
@@ -34,6 +36,40 @@ const fecha = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Fecha inválida");
 function campo(datos: FormData, nombre: string) {
   const valor = datos.get(nombre);
   return typeof valor === "string" ? valor : "";
+}
+
+
+// ---------------------------------------------------------------- cuenta
+
+export async function cambiarPassword(datos: FormData) {
+  const sesion = await sesionActual();
+  if (!sesion) throw new Error("Sesión no válida");
+
+  const actual = campo(datos, "actual");
+  const nueva = campo(datos, "nueva");
+  const repetir = campo(datos, "repetir");
+
+  if (nueva.length < 10) {
+    throw new Error("La contraseña nueva debe tener al menos 10 caracteres");
+  }
+  if (nueva !== repetir) {
+    throw new Error("La contraseña nueva y su repetición no coinciden");
+  }
+
+  // Se pide la actual aunque ya haya sesión: si alguien se sienta en tu
+  // portátil con la sesión abierta, no debería poder dejarte fuera.
+  const usuario = await uno<{ password_hash: string }>(
+    "select password_hash from usuario where id = $1",
+    [sesion.id],
+  );
+  if (!usuario || !(await bcrypt.compare(actual, usuario.password_hash))) {
+    throw new Error("La contraseña actual no es correcta");
+  }
+
+  await sql("update usuario set password_hash = $2 where id = $1", [
+    sesion.id,
+    await bcrypt.hash(nueva, 12),
+  ]);
 }
 
 // ---------------------------------------------------------------- clientes
@@ -449,6 +485,147 @@ export async function cambiarEstadoCompromiso(datos: FormData) {
   revalidatePath(`/clientes/${v.cliente_id}`);
   revalidatePath("/compromisos");
   revalidatePath("/");
+}
+
+
+// ---------------------------------------------------------------- métricas
+
+const numero = (valor: string, campoNombre: string, max?: number) => {
+  const limpio = valor.trim().replace(",", ".");
+  if (limpio === "") return null;
+  const n = Number(limpio);
+  if (!Number.isFinite(n) || n < 0) {
+    throw new Error(`${campoNombre}: "${valor}" no es un número válido`);
+  }
+  if (max !== undefined && n > max) {
+    throw new Error(`${campoNombre}: ${n} está fuera de rango (máximo ${max})`);
+  }
+  return n;
+};
+
+/**
+ * Guarda de una vez el día completo: una fila por cliente en producción.
+ *
+ * Un cliente se salta si no trae ningún número y no está marcado como sin
+ * actividad. Eso permite registrar cuatro clientes hoy y el quinto mañana sin
+ * que la fila a medias ensucie los promedios.
+ */
+export async function guardarMetricasDia(datos: FormData) {
+  const fechaDia = fecha.parse(campo(datos, "fecha"));
+  const ids = datos.getAll("cliente_id").map((v) => z.uuid().parse(String(v)));
+
+  await enTransaccion(async (q) => {
+    for (const id of ids) {
+      const sinActividad = campo(datos, `sin_actividad_${id}`) === "on";
+      const llamadas = numero(campo(datos, `llamadas_${id}`), "Llamadas");
+      const minutos = numero(campo(datos, `minutos_${id}`), "Minutos");
+      const contencion = numero(campo(datos, `contencion_${id}`), "Contención", 100);
+      const notas = campo(datos, `notas_${id}`).trim() || null;
+
+      const vacio = llamadas === null && minutos === null && contencion === null;
+
+      if (vacio && !sinActividad) {
+        // Nada que guardar. Si ya existía una fila de ese día, se respeta:
+        // borrarla al enviar el formulario en blanco sería destruir sin querer.
+        continue;
+      }
+
+      if (!sinActividad && llamadas === null) {
+        throw new Error("Si el día tuvo actividad, hacen falta al menos las llamadas");
+      }
+
+      await q(
+        `insert into metrica_dia
+           (cliente_id, fecha, llamadas_totales, duracion_total_min,
+            contencion_pct, sin_actividad, notas, origen)
+         values ($1, $2, $3, $4, $5, $6, $7, 'app')
+         on conflict (cliente_id, fecha) do update set
+           llamadas_totales   = excluded.llamadas_totales,
+           duracion_total_min = excluded.duracion_total_min,
+           contencion_pct     = excluded.contencion_pct,
+           sin_actividad      = excluded.sin_actividad,
+           notas              = excluded.notas`,
+        [
+          id,
+          fechaDia,
+          sinActividad ? null : llamadas,
+          sinActividad ? null : minutos,
+          sinActividad ? null : contencion,
+          sinActividad,
+          notas,
+        ],
+      );
+    }
+  });
+
+  revalidatePath("/metricas");
+  revalidatePath("/clientes");
+}
+
+export async function guardarMetricaMes(datos: FormData) {
+  const clienteId = z.uuid().parse(campo(datos, "cliente_id"));
+  const mes = campo(datos, "periodo"); // 'YYYY-MM' del input type=month
+  if (!/^\d{4}-\d{2}$/.test(mes)) throw new Error("Mes inválido");
+  const periodo = `${mes}-01`;
+
+  const llamadas = numero(campo(datos, "llamadas_totales"), "Llamadas");
+  const minutos = numero(campo(datos, "duracion_total_min"), "Minutos");
+  const contencion = numero(campo(datos, "contencion_pct"), "Contención", 100);
+  const notas = campo(datos, "notas").trim() || null;
+
+  if (llamadas === null && minutos === null && contencion === null) {
+    await sql("delete from metrica_mes where cliente_id = $1 and periodo = $2", [
+      clienteId,
+      periodo,
+    ]);
+  } else {
+    await sql(
+      `insert into metrica_mes
+         (cliente_id, periodo, llamadas_totales, duracion_total_min, contencion_pct, notas)
+       values ($1, $2, $3, $4, $5, $6)
+       on conflict (cliente_id, periodo) do update set
+         llamadas_totales   = excluded.llamadas_totales,
+         duracion_total_min = excluded.duracion_total_min,
+         contencion_pct     = excluded.contencion_pct,
+         notas              = excluded.notas`,
+      [clienteId, periodo, llamadas, minutos, contencion, notas],
+    );
+  }
+
+  revalidatePath(`/clientes/${clienteId}`);
+}
+
+export async function borrarMetricaMes(datos: FormData) {
+  const id = z.uuid().parse(campo(datos, "id"));
+  const clienteId = z.uuid().parse(campo(datos, "cliente_id"));
+  await sql("delete from metrica_mes where id = $1", [id]);
+  revalidatePath(`/clientes/${clienteId}`);
+}
+
+export async function guardarObjetivoMes(datos: FormData) {
+  const clienteId = z.uuid().parse(campo(datos, "cliente_id"));
+  const periodo = fecha.parse(campo(datos, "periodo"));
+  const llamadas = numero(campo(datos, "llamadas_comprometidas"), "Llamadas");
+  const minutos = numero(campo(datos, "minutos_comprometidos"), "Minutos");
+
+  if (llamadas === null && minutos === null) {
+    await sql("delete from objetivo_mes where cliente_id = $1 and periodo = $2", [
+      clienteId,
+      periodo,
+    ]);
+  } else {
+    await sql(
+      `insert into objetivo_mes
+         (cliente_id, periodo, llamadas_comprometidas, minutos_comprometidos)
+       values ($1, $2, $3, $4)
+       on conflict (cliente_id, periodo) do update set
+         llamadas_comprometidas = excluded.llamadas_comprometidas,
+         minutos_comprometidos  = excluded.minutos_comprometidos`,
+      [clienteId, periodo, llamadas, minutos],
+    );
+  }
+
+  revalidatePath(`/clientes/${clienteId}`);
 }
 
 // ---------------------------------------------------------------- contactos

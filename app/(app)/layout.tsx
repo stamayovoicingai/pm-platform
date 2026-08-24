@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic";
 const RUTAS = [
   { href: "/", etiqueta: "Hoy" },
   { href: "/clientes", etiqueta: "Clientes" },
+  { href: "/metricas", etiqueta: "Métricas" },
   { href: "/hitos", etiqueta: "Hitos" },
   { href: "/compromisos", etiqueta: "Compromisos" },
 ];
@@ -45,16 +46,21 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               ))}
             </nav>
 
-            <form action={salir} className="shrink-0">
-              <button
-                type="submit"
+            <div className="flex items-center gap-3 shrink-0">
+              <Link
+                href="/perfil"
                 className="text-xs"
                 style={{ color: "var(--texto-3)" }}
                 title={sesion.email}
               >
-                Salir
-              </button>
-            </form>
+                Cuenta
+              </Link>
+              <form action={salir}>
+                <button type="submit" className="text-xs" style={{ color: "var(--texto-3)" }}>
+                  Salir
+                </button>
+              </form>
+            </div>
           </div>
         </div>
       </header>

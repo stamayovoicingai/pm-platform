@@ -10,8 +10,13 @@ Documentación de producto en `docs/`: concepto, modelo de datos y alcance por f
 **Fase 1 — Registrar.** Clientes con fase, timeline de eventos con estado e hilo de
 actualizaciones, hitos con historial de cambios de fecha, compromisos y contactos.
 
-Pendiente: métricas diarias y dashboard (Fase 2), ingesta de transcripts con LLM
-(Fase 3), stack histórico (Fase 4), integración con Slack.
+**Fase 2 — Medir (en curso).** Captura diaria de llamadas, minutos y contención;
+totales mensuales históricos; objetivos por mes; tabla mensual con deltas. Cambio de
+contraseña desde la interfaz.
+
+Pendiente: curvas con eventos superpuestos, motor de banderas y dashboard filtrable
+(resto de Fase 2), ingesta de transcripts con LLM (Fase 3), stack histórico (Fase 4),
+integración con Slack.
 
 ## Desarrollo local
 
@@ -102,6 +107,11 @@ alertaran, el canal de Slack sería ruido y se dejaría de leer.
 **Las fechas de hito no se sobreescriben.** Moverlas exige un motivo y deja fila en
 `hito_cambio_fecha`. Es lo que a los seis meses permite decir con datos por qué se
 retrasan las salidas.
+
+**Un mes histórico no es un día suelto.** Los totales mensuales cargados a mano viven en
+`metrica_mes`, no como una fila de `metrica_dia` el día 1. Guardarlos ahí falsearía el
+promedio diario, el conteo de días con actividad y cualquier gráfica futura. Al consultar,
+el mes cargado a mano tiene prioridad sobre la suma de sus días.
 
 **Tipo y seguimiento son ejes independientes.** El tipo dice qué clase de cosa es un
 registro; `estado_seguimiento` dice si sigue viva. Un despliegue puede estar pendiente y

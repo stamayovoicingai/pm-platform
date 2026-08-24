@@ -49,6 +49,36 @@ del timeline, y se descargan pulsando su nombre.
 El límite es de 10 MB por archivo y 3 por envío. Se guardan dentro de la base de datos,
 no en disco aparte, para que entren en el mismo backup que todo lo demás.
 
+## Métricas
+
+En **Métricas** registras el día: llamadas, minutos y % de contención por cada cliente en
+producción. Los clientes en fases anteriores no aparecen — pedirles números a diario sería
+fricción a cambio de ceros.
+
+Si un cliente no tuvo actividad, marca *Sin actividad* en vez de escribir ceros: así no
+ensucia los promedios ni el conteo de días.
+
+**Pegar bloque** acepta líneas tipo `Acme 1240 3720 71` y rellena los campos solo. Sirve
+pegar directo desde una hoja de cálculo. El nombre puede llevar espacios; se toman los
+números del final de la línea.
+
+Abajo aparecen los **días incompletos** de las últimas dos semanas, para rellenar los que
+te saltaste antes de que llegue el cierre de mes.
+
+### Meses históricos
+
+Para meses de los que tienes el total pero no el día a día, en la ficha del cliente está
+*Cargar un mes completo*. Se guardan aparte de los datos diarios y tienen prioridad sobre
+la suma de días de ese mes, así que puedes cargar el histórico sin inventar días falsos.
+
+En la tabla mensual, cada fila indica su origen: `mensual` si se cargó a mano, o el
+número de días registrados si sale de la captura diaria.
+
+### Objetivo del mes
+
+Lo vendido al cliente para ese mes. Con él, la tabla muestra el porcentaje de
+cumplimiento.
+
 ## Puesta en marcha
 
 1. **Clientes → Nuevo cliente** para cada uno de los clientes bajo TP, con su nombre

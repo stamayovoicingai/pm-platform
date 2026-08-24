@@ -3,6 +3,11 @@ import { notFound } from "next/navigation";
 import { obtenerCliente, listarPartners } from "@/lib/consultas/clientes";
 import { timelineCliente, actualizacionesDe } from "@/lib/consultas/eventos";
 import { adjuntosDe } from "@/lib/consultas/adjuntos";
+import {
+  resumenMensual,
+  objetivosCliente,
+  mesesCargados,
+} from "@/lib/consultas/metricas";
 import { hitosCliente, historialFechas } from "@/lib/consultas/hitos";
 import { compromisosCliente } from "@/lib/consultas/compromisos";
 import { contactosCliente } from "@/lib/consultas/contactos";
@@ -11,6 +16,7 @@ import Pastilla from "@/components/Pastilla";
 import FormularioEvento from "@/components/FormularioEvento";
 import BloqueHito from "@/components/BloqueHito";
 import EventoLinea from "@/components/EventoLinea";
+import ResumenMetricas from "@/components/ResumenMetricas";
 import {
   crearCompromiso,
   cambiarEstadoCompromiso,
@@ -38,13 +44,17 @@ export default async function FichaCliente({ params }: { params: Promise<{ id: s
   const cliente = await obtenerCliente(id);
   if (!cliente) notFound();
 
-  const [eventos, hitos, compromisos, contactos, partners] = await Promise.all([
-    timelineCliente(id),
-    hitosCliente(id),
-    compromisosCliente(id),
-    contactosCliente(id),
-    listarPartners(),
-  ]);
+  const [eventos, hitos, compromisos, contactos, partners, resumen, objetivos, meses] =
+    await Promise.all([
+      timelineCliente(id),
+      hitosCliente(id),
+      compromisosCliente(id),
+      contactosCliente(id),
+      listarPartners(),
+      resumenMensual(id),
+      objetivosCliente(id),
+      mesesCargados(id),
+    ]);
 
   const ids = eventos.map((e) => e.id);
   const [actualizaciones, adjuntos] = await Promise.all([
@@ -115,6 +125,17 @@ export default async function FichaCliente({ params }: { params: Promise<{ id: s
             ))}
           </div>
         )}
+      </Seccion>
+
+      {/* ------------------------------------------------------------ métricas */}
+
+      <Seccion titulo="Métricas mensuales">
+        <ResumenMetricas
+          clienteId={cliente.id}
+          resumen={resumen}
+          objetivos={objetivos}
+          meses={meses}
+        />
       </Seccion>
 
       {/* ------------------------------------------------------------ hitos */}
