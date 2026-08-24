@@ -2,7 +2,7 @@
  * Datos iniciales: usuario, partner, reglas de bandera por defecto y catálogo de stack.
  * Es idempotente — se puede correr varias veces sin duplicar nada.
  */
-import { Pool } from "pg";
+import pg from "pg";
 import bcrypt from "bcryptjs";
 
 const REGLAS_POR_DEFECTO = [
@@ -77,7 +77,7 @@ const CATALOGO = [
   ["infra", "Easypanel", null],
   ["vector_db", "pgvector", null],
   ["vector_db", "Qdrant", null],
-] as const;
+];
 
 async function main() {
   const connectionString = process.env.DATABASE_URL;
@@ -95,7 +95,7 @@ async function main() {
     process.exit(1);
   }
 
-  const pool = new Pool({
+  const pool = new pg.Pool({
     connectionString,
     ssl: process.env.DATABASE_SSL === "true" ? { rejectUnauthorized: false } : undefined,
   });

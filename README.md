@@ -7,8 +7,8 @@ Documentación de producto en `docs/`: concepto, modelo de datos y alcance por f
 
 ## Estado
 
-**Fase 1 — Registrar.** Clientes con fase, timeline de eventos, hitos con historial de
-cambios de fecha, compromisos y contactos.
+**Fase 1 — Registrar.** Clientes con fase, timeline de eventos con estado e hilo de
+actualizaciones, hitos con historial de cambios de fecha, compromisos y contactos.
 
 Pendiente: métricas diarias y dashboard (Fase 2), ingesta de transcripts con LLM
 (Fase 3), stack histórico (Fase 4), integración con Slack.
@@ -51,17 +51,22 @@ Variables de entorno:
 
 Asigna el dominio y deja que Easypanel emita el certificado.
 
-### 3. Migrar y sembrar
+### 3. Migraciones
 
-Tras el primer despliegue, desde la consola del contenedor:
+**Se aplican solas al arrancar el contenedor.** Son idempotentes, así que un reinicio no
+repite nada. Si una falla, el contenedor no levanta: es preferible a servir la app contra
+un esquema a medias, y en Easypanel eso significa un deploy fallido, no una app caída.
+
+La semilla sí es manual, y solo hace falta la primera vez. Desde la consola del
+contenedor:
 
 ```bash
-node_modules/.bin/tsx db/migrate.ts
-node_modules/.bin/tsx db/seed.ts
+node db/seed.mjs
 ```
 
-La migración es idempotente: registra lo aplicado en la tabla `migracion` y no repite.
-La semilla también — se puede volver a correr para cambiar la contraseña.
+Necesita `PM_EMAIL` y `PM_PASSWORD` como variables de entorno. Volver a correrla actualiza
+la contraseña del usuario existente, que es la vía para cambiarla mientras no exista la
+pantalla de perfil.
 
 ## Estructura
 
@@ -79,8 +84,9 @@ lib/
   consultas/        lectura, una por agregado
 db/
   migrations/       SQL numerado, se aplica en orden
-  migrate.ts        aplicador idempotente
-  seed.ts           usuario, partner, reglas y catálogo iniciales
+  migrate.mjs       aplicador idempotente, corre al arrancar el contenedor
+  seed.mjs          usuario, partner, reglas y catálogo iniciales
+  verificar.ts      prueba de humo contra una base real
 proxy.ts            protege las rutas verificando la cookie de sesión
 ```
 
@@ -96,3 +102,9 @@ alertaran, el canal de Slack sería ruido y se dejaría de leer.
 **Las fechas de hito no se sobreescriben.** Moverlas exige un motivo y deja fila en
 `hito_cambio_fecha`. Es lo que a los seis meses permite decir con datos por qué se
 retrasan las salidas.
+
+**Solo algunos eventos tienen estado.** Incidencia, bloqueo, riesgo y cambio de scope
+describen algo vivo: nacen abiertos y se cierran con una actualización. Nota, decisión,
+despliegue y feedback ya ocurrieron y no tienen nada que seguir, así que su estado es
+`null`. Darle estado a todo llenaría la vista de asuntos abiertos de cosas que nadie va
+a cerrar nunca.

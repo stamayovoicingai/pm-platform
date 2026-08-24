@@ -1,13 +1,16 @@
 /**
  * Aplica las migraciones de db/migrations en orden alfabético.
  * Cada una se ejecuta una sola vez y queda registrada en la tabla `migracion`.
+ *
+ * JavaScript plano a propósito: corre en el contenedor de producción con solo
+ * `node` y `pg`, sin necesitar tsx ni el toolchain de TypeScript.
  */
 import { readdir, readFile } from "node:fs/promises";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { Pool } from "pg";
+import pg from "pg";
 
-const aquí = dirname(fileURLToPath(import.meta.url));
+const aqui = dirname(fileURLToPath(import.meta.url));
 
 async function main() {
   const connectionString = process.env.DATABASE_URL;
@@ -16,7 +19,7 @@ async function main() {
     process.exit(1);
   }
 
-  const pool = new Pool({
+  const pool = new pg.Pool({
     connectionString,
     ssl: process.env.DATABASE_SSL === "true" ? { rejectUnauthorized: false } : undefined,
   });
@@ -28,10 +31,10 @@ async function main() {
     )
   `);
 
-  const { rows } = await pool.query<{ nombre: string }>("select nombre from migracion");
+  const { rows } = await pool.query("select nombre from migracion");
   const aplicadas = new Set(rows.map((r) => r.nombre));
 
-  const carpeta = join(aquí, "migrations");
+  const carpeta = join(aqui, "migrations");
   const archivos = (await readdir(carpeta)).filter((f) => f.endsWith(".sql")).sort();
 
   let nuevas = 0;
@@ -56,7 +59,9 @@ async function main() {
     }
   }
 
-  console.log(nuevas === 0 ? "Sin migraciones pendientes." : `${nuevas} migración(es) aplicada(s).`);
+  console.log(
+    nuevas === 0 ? "Sin migraciones pendientes." : `${nuevas} migración(es) aplicada(s).`,
+  );
   await pool.end();
 }
 

@@ -169,3 +169,51 @@ export function colorEvento(tipo: TipoEvento): { fondo: string; texto: string } 
       return { fondo: "var(--superficie-2)", texto: "var(--texto-2)" };
   }
 }
+
+// ---------------------------------------------------------------- seguimiento
+
+export const ESTADOS_SEGUIMIENTO = [
+  "abierto",
+  "en_curso",
+  "resuelto",
+  "descartado",
+] as const;
+export type EstadoSeguimiento = (typeof ESTADOS_SEGUIMIENTO)[number];
+
+export const ETIQUETA_SEGUIMIENTO: Record<EstadoSeguimiento, string> = {
+  abierto: "Abierto",
+  en_curso: "En curso",
+  resuelto: "Resuelto",
+  descartado: "Descartado",
+};
+
+/**
+ * Solo estos tipos describen algo que sigue vivo y admite seguimiento.
+ * Una decisión o un despliegue ya ocurrieron: no hay nada que actualizar.
+ */
+export const TIPOS_SEGUIBLES: TipoEvento[] = [
+  "incidencia",
+  "bloqueo",
+  "riesgo",
+  "cambio_scope",
+];
+
+export function esSeguible(tipo: TipoEvento): boolean {
+  return TIPOS_SEGUIBLES.includes(tipo);
+}
+
+export function colorSeguimiento(estado: EstadoSeguimiento): {
+  fondo: string;
+  texto: string;
+} {
+  switch (estado) {
+    case "abierto":
+      return { fondo: "var(--riesgo-suave)", texto: "var(--riesgo)" };
+    case "en_curso":
+      return { fondo: "var(--oportunidad-suave)", texto: "var(--oportunidad)" };
+    case "resuelto":
+      return { fondo: "var(--acento-suave)", texto: "var(--acento)" };
+    default:
+      return { fondo: "var(--superficie-2)", texto: "var(--texto-3)" };
+  }
+}

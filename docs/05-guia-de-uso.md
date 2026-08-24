@@ -7,7 +7,7 @@ está en qué quieres que pase después:
 
 | Qué | Cuándo usarlo | Qué provoca |
 |---|---|---|
-| **Evento** | Algo que pasó y quieres recordar | Nada. Se acumula en el timeline |
+| **Evento** | Algo que pasó y quieres recordar | Se acumula en el timeline. Si es de los que siguen vivos, además se puede seguir |
 | **Compromiso** | Alguien tiene que hacer algo | Aparece en Hoy y, más adelante, en Slack |
 | **Hito** | Una fecha grande del proyecto | Aviso anticipado + historial de cambios de fecha |
 
@@ -16,6 +16,33 @@ Si sí, compromiso. Si no, evento.
 
 Esa separación es la que sostiene el sistema. Si todo fuera nota, nada te avisaría.
 Si todo fuera compromiso, el aviso sería ruido y dejarías de mirarlo.
+
+## Seguimiento de un evento
+
+Una incidencia o un bloqueo no son un punto en el tiempo: siguen vivos hasta que dejan
+de estarlo. Por eso los eventos de tipo **incidencia, bloqueo, riesgo y cambio de scope**
+nacen marcados como *abiertos* y tienen debajo un hilo de actualizaciones.
+
+Cada vez que sepas algo nuevo, añades una actualización con lo que pasó. Si eso cambia la
+situación, eliges también el estado nuevo: *en curso*, *resuelto* o *descartado*. La
+actualización guarda el cambio, de forma que el hilo se lee como una historia — qué se
+supo, cuándo, y qué cambió.
+
+Los demás tipos (nota, decisión, despliegue, feedback) ya ocurrieron y no tienen estado.
+Darle seguimiento a todo llenaría la vista de *asuntos abiertos* de cosas que nadie va a
+cerrar nunca.
+
+En **Hoy**, la sección *Asuntos abiertos* reúne todo lo que sigue sin cerrarse de todos
+los clientes, con lo más grave arriba.
+
+## Archivos
+
+Cualquier registro admite archivos: el pantallazo del error, el acta de la reunión, el
+PDF del contrato. Se suben al crearlo o después, desde *Adjuntar archivo* en la entrada
+del timeline, y se descargan pulsando su nombre.
+
+El límite es de 10 MB por archivo y 3 por envío. Se guardan dentro de la base de datos,
+no en disco aparte, para que entren en el mismo backup que todo lo demás.
 
 ## Puesta en marcha
 

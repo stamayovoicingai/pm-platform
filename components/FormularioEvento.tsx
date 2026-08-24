@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { crearEvento } from "@/app/acciones";
+import { LIMITE_BYTES, MAX_ARCHIVOS_POR_SUBIDA, tamanoLegible } from "@/lib/adjuntos";
 import {
   TIPOS_EVENTO_MANUAL,
   SEVERIDADES,
@@ -26,16 +27,20 @@ export default function FormularioEvento({
   const formulario = useRef<HTMLFormElement>(null);
   const [tipo, setTipo] = useState<TipoEvento>("nota");
   const [guardando, setGuardando] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   return (
     <form
       ref={formulario}
       action={async (datos) => {
         setGuardando(true);
+        setError(null);
         try {
           await crearEvento(datos);
           formulario.current?.reset();
           setTipo("nota");
+        } catch (e) {
+          setError(e instanceof Error ? e.message : "No se pudo registrar");
         } finally {
           setGuardando(false);
         }
@@ -76,6 +81,26 @@ export default function FormularioEvento({
       />
 
       <textarea name="cuerpo" rows={2} className="campo" placeholder="Detalle (opcional)" />
+
+      <div>
+        <label className="etiqueta" htmlFor="archivos">
+          Archivos · hasta {MAX_ARCHIVOS_POR_SUBIDA}, {tamanoLegible(LIMITE_BYTES)} cada uno
+        </label>
+        <input
+          id="archivos"
+          type="file"
+          name="archivos"
+          multiple
+          className="text-sm w-full"
+          style={{ color: "var(--texto-2)" }}
+        />
+      </div>
+
+      {error && (
+        <p className="text-sm" style={{ color: "var(--riesgo)" }}>
+          {error}
+        </p>
+      )}
 
       <div className="flex flex-wrap items-end gap-3">
         <div className="w-40">

@@ -2,9 +2,15 @@ import Link from "next/link";
 import { hitosProximos } from "@/lib/consultas/hitos";
 import { compromisosAbiertos } from "@/lib/consultas/compromisos";
 import { clientesEnSilencio } from "@/lib/consultas/clientes";
-import { eventosRecientes } from "@/lib/consultas/eventos";
+import {
+  eventosRecientes,
+  eventosAbiertos,
+  actualizacionesDe,
+} from "@/lib/consultas/eventos";
+import { adjuntosDe } from "@/lib/consultas/adjuntos";
 import { Seccion, Vacio } from "@/components/Seccion";
 import Pastilla from "@/components/Pastilla";
+import EventoLinea from "@/components/EventoLinea";
 import {
   ETIQUETA_HITO,
   ETIQUETA_EVENTO,
@@ -23,11 +29,18 @@ function colorPorUrgencia(dias: number | null) {
 }
 
 export default async function Hoy() {
-  const [hitos, compromisos, silencio, eventos] = await Promise.all([
+  const [hitos, compromisos, silencio, eventos, abiertos] = await Promise.all([
     hitosProximos(30),
     compromisosAbiertos(7),
     clientesEnSilencio(14),
     eventosRecientes(12),
+    eventosAbiertos(),
+  ]);
+
+  const idsAbiertos = abiertos.map((e) => e.id);
+  const [actualizaciones, adjuntos] = await Promise.all([
+    actualizacionesDe(idsAbiertos),
+    adjuntosDe(idsAbiertos),
   ]);
 
   const vencidos = compromisos.filter(
@@ -41,9 +54,28 @@ export default async function Hoy() {
         <p className="text-sm mt-1" style={{ color: "var(--texto-2)" }}>
           {hitos.length} hito{hitos.length === 1 ? "" : "s"} en 30 días ·{" "}
           {vencidos.length} compromiso{vencidos.length === 1 ? "" : "s"} vencido
-          {vencidos.length === 1 ? "" : "s"}
+          {vencidos.length === 1 ? "" : "s"} · {abiertos.length} asunto
+          {abiertos.length === 1 ? "" : "s"} abierto{abiertos.length === 1 ? "" : "s"}
         </p>
       </div>
+
+      <Seccion titulo="Asuntos abiertos" contador={abiertos.length}>
+        {abiertos.length === 0 ? (
+          <Vacio>Nada abierto. Ninguna incidencia, bloqueo ni riesgo sin cerrar.</Vacio>
+        ) : (
+          <div className="tarjeta divide-y" style={{ borderColor: "var(--borde)" }}>
+            {abiertos.map((e) => (
+              <EventoLinea
+                key={e.id}
+                evento={e}
+                actualizaciones={actualizaciones[e.id] ?? []}
+                adjuntos={adjuntos[e.id] ?? []}
+                mostrarCliente
+              />
+            ))}
+          </div>
+        )}
+      </Seccion>
 
       <Seccion titulo="Hitos próximos" contador={hitos.length}>
         {hitos.length === 0 ? (

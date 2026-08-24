@@ -5,6 +5,12 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { sql, uno, enTransaccion } from "@/lib/db";
 import {
+  LIMITE_BYTES,
+  MAX_ARCHIVOS_POR_SUBIDA,
+  nombreSeguro,
+  tamanoLegible,
+} from "@/lib/adjuntos";
+import {
   FASES,
   ESTADOS_CLIENTE,
   TIPOS_EVENTO,
@@ -13,7 +19,9 @@ import {
   ESTADOS_HITO,
   ESTADOS_COMPROMISO,
   LADOS,
+  ESTADOS_SEGUIMIENTO,
   ETIQUETA_FASE,
+  esSeguible,
 } from "@/lib/dominio";
 
 const texto = z.string().trim().min(1);
@@ -131,11 +139,73 @@ export async function crearEvento(datos: FormData) {
     severidad: campo(datos, "severidad") || "info",
   });
 
-  await sql(
-    `insert into evento (cliente_id, tipo, titulo, cuerpo, fecha_evento, severidad, origen)
-     values ($1, $2, $3, $4, $5, $6, 'app')`,
-    [v.cliente_id, v.tipo, v.titulo, v.cuerpo, v.fecha_evento, v.severidad],
+  // Los tipos que describen algo vivo nacen abiertos; el resto sin estado.
+  const creado = await uno<{ id: string }>(
+    `insert into evento (cliente_id, tipo, titulo, cuerpo, fecha_evento, severidad,
+                         estado_seguimiento, origen)
+     values ($1, $2, $3, $4, $5, $6, $7, 'app')
+     returning id`,
+    [
+      v.cliente_id,
+      v.tipo,
+      v.titulo,
+      v.cuerpo,
+      v.fecha_evento,
+      v.severidad,
+      esSeguible(v.tipo) ? "abierto" : null,
+    ],
   );
+
+  await guardarArchivos(creado!.id, datos.getAll("archivos") as File[]);
+
+  revalidatePath(`/clientes/${v.cliente_id}`);
+  revalidatePath("/");
+}
+
+/**
+ * Añade una actualización al hilo de un evento y, si se indica, cambia su
+ * estado. El estado anterior queda registrado en la propia actualización, así
+ * que el hilo se lee como una historia: qué se supo, cuándo, y qué cambió.
+ */
+export async function actualizarEvento(datos: FormData) {
+  const v = z
+    .object({
+      evento_id: z.uuid(),
+      cliente_id: z.uuid(),
+      cuerpo: texto,
+      estado_nuevo: z.enum(ESTADOS_SEGUIMIENTO).nullable(),
+    })
+    .parse({
+      evento_id: campo(datos, "evento_id"),
+      cliente_id: campo(datos, "cliente_id"),
+      cuerpo: campo(datos, "cuerpo"),
+      estado_nuevo: campo(datos, "estado_nuevo") || null,
+    });
+
+  await enTransaccion(async (q) => {
+    const [evento] = await q<{ estado_seguimiento: string | null }>(
+      "select estado_seguimiento from evento where id = $1 for update",
+      [v.evento_id],
+    );
+    if (!evento) throw new Error("Evento no encontrado");
+
+    const anterior = evento.estado_seguimiento;
+    const cambia = v.estado_nuevo !== null && v.estado_nuevo !== anterior;
+
+    await q(
+      `insert into evento_actualizacion
+         (evento_id, cuerpo, estado_anterior, estado_nuevo, origen)
+       values ($1, $2, $3, $4, 'app')`,
+      [v.evento_id, v.cuerpo, anterior, cambia ? v.estado_nuevo : null],
+    );
+
+    if (cambia) {
+      await q("update evento set estado_seguimiento = $2 where id = $1", [
+        v.evento_id,
+        v.estado_nuevo,
+      ]);
+    }
+  });
 
   revalidatePath(`/clientes/${v.cliente_id}`);
   revalidatePath("/");
@@ -146,6 +216,67 @@ export async function borrarEvento(datos: FormData) {
   const clienteId = z.uuid().parse(campo(datos, "cliente_id"));
   await sql("delete from evento where id = $1", [id]);
   revalidatePath(`/clientes/${clienteId}`);
+}
+
+
+// ---------------------------------------------------------------- adjuntos
+
+/**
+ * Guarda los archivos de un FormData contra un evento. El límite se comprueba
+ * aquí y no solo en el navegador: el input `accept` y el tamaño son una ayuda
+ * de interfaz, no una garantía.
+ */
+async function guardarArchivos(eventoId: string, archivos: File[]) {
+  const validos = archivos.filter((a) => a.size > 0);
+  if (validos.length === 0) return;
+
+  if (validos.length > MAX_ARCHIVOS_POR_SUBIDA) {
+    throw new Error(`Máximo ${MAX_ARCHIVOS_POR_SUBIDA} archivos por vez`);
+  }
+
+  for (const archivo of validos) {
+    if (archivo.size > LIMITE_BYTES) {
+      throw new Error(
+        `"${archivo.name}" pesa ${tamanoLegible(archivo.size)} y el límite es ` +
+          `${tamanoLegible(LIMITE_BYTES)}`,
+      );
+    }
+  }
+
+  for (const archivo of validos) {
+    const contenido = Buffer.from(await archivo.arrayBuffer());
+    await sql(
+      `insert into adjunto (evento_id, nombre, tipo_mime, tamano_bytes, contenido)
+       values ($1, $2, $3, $4, $5)`,
+      [
+        eventoId,
+        nombreSeguro(archivo.name),
+        archivo.type || "application/octet-stream",
+        archivo.size,
+        contenido,
+      ],
+    );
+  }
+}
+
+export async function subirAdjunto(datos: FormData) {
+  const eventoId = z.uuid().parse(campo(datos, "evento_id"));
+  const clienteId = z.uuid().parse(campo(datos, "cliente_id"));
+
+  await guardarArchivos(eventoId, datos.getAll("archivos") as File[]);
+
+  revalidatePath(`/clientes/${clienteId}`);
+  revalidatePath("/");
+}
+
+export async function borrarAdjunto(datos: FormData) {
+  const id = z.uuid().parse(campo(datos, "id"));
+  const clienteId = z.uuid().parse(campo(datos, "cliente_id"));
+
+  await sql("delete from adjunto where id = $1", [id]);
+
+  revalidatePath(`/clientes/${clienteId}`);
+  revalidatePath("/");
 }
 
 // ---------------------------------------------------------------- hitos

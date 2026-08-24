@@ -24,12 +24,14 @@ COPY --from=build /app/public ./public
 COPY --from=build --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=build --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Migraciones y semilla: se ejecutan a mano con `docker exec` tras el primer deploy.
-COPY --from=build /app/db ./db
-COPY --from=build /app/node_modules/tsx ./node_modules/tsx
-COPY --from=build /app/node_modules/pg ./node_modules/pg
-COPY --from=build /app/node_modules/bcryptjs ./node_modules/bcryptjs
+# Los scripts de base son JavaScript plano y solo necesitan pg y bcryptjs,
+# que el standalone ya trae. No hace falta TypeScript en producción.
+COPY --from=build --chown=nextjs:nodejs /app/db ./db
 
 USER nextjs
 EXPOSE 3000
-CMD ["node", "server.js"]
+
+# Las migraciones se aplican al arrancar. Son idempotentes, así que un
+# reinicio no repite nada; y si una falla, el contenedor no levanta, que es
+# preferible a servir la app contra un esquema a medias.
+CMD ["sh", "-c", "node db/migrate.mjs && node server.js"]

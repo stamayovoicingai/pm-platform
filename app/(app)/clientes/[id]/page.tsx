@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { obtenerCliente, listarPartners } from "@/lib/consultas/clientes";
-import { timelineCliente } from "@/lib/consultas/eventos";
+import { timelineCliente, actualizacionesDe } from "@/lib/consultas/eventos";
+import { adjuntosDe } from "@/lib/consultas/adjuntos";
 import { hitosCliente, historialFechas } from "@/lib/consultas/hitos";
 import { compromisosCliente } from "@/lib/consultas/compromisos";
 import { contactosCliente } from "@/lib/consultas/contactos";
@@ -9,6 +10,7 @@ import { Seccion, Vacio } from "@/components/Seccion";
 import Pastilla from "@/components/Pastilla";
 import FormularioEvento from "@/components/FormularioEvento";
 import BloqueHito from "@/components/BloqueHito";
+import EventoLinea from "@/components/EventoLinea";
 import {
   crearCompromiso,
   cambiarEstadoCompromiso,
@@ -19,7 +21,6 @@ import {
 } from "@/app/acciones";
 import {
   ETIQUETA_FASE,
-  ETIQUETA_EVENTO,
   ETIQUETA_LADO,
   ETIQUETA_HITO,
   ETIQUETA_ESTADO_CLIENTE,
@@ -27,7 +28,6 @@ import {
   ESTADOS_CLIENTE,
   TIPOS_HITO,
   LADOS,
-  colorEvento,
 } from "@/lib/dominio";
 import { fechaCorta, fechaLarga, textoRelativo, diasHasta, hoy } from "@/lib/fechas";
 
@@ -44,6 +44,12 @@ export default async function FichaCliente({ params }: { params: Promise<{ id: s
     compromisosCliente(id),
     contactosCliente(id),
     listarPartners(),
+  ]);
+
+  const ids = eventos.map((e) => e.id);
+  const [actualizaciones, adjuntos] = await Promise.all([
+    actualizacionesDe(ids),
+    adjuntosDe(ids),
   ]);
 
   const historiales = Object.fromEntries(
@@ -99,45 +105,14 @@ export default async function FichaCliente({ params }: { params: Promise<{ id: s
           <Vacio>Nada registrado todavía para este cliente.</Vacio>
         ) : (
           <div className="tarjeta divide-y" style={{ borderColor: "var(--borde)" }}>
-            {eventos.map((e) => {
-              const color = colorEvento(e.tipo);
-              return (
-                <div
-                  key={e.id}
-                  className="flex items-start gap-3 px-4 py-3"
-                  style={{ borderColor: "var(--borde)" }}
-                >
-                  <span
-                    className="text-xs shrink-0 w-14 pt-0.5"
-                    style={{ color: "var(--texto-3)" }}
-                  >
-                    {fechaCorta(e.fecha_evento)}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Pastilla fondo={color.fondo} texto={color.texto}>
-                        {ETIQUETA_EVENTO[e.tipo]}
-                      </Pastilla>
-                      {e.severidad === "alta" && (
-                        <Pastilla fondo="var(--riesgo-suave)" texto="var(--riesgo)">
-                          alta
-                        </Pastilla>
-                      )}
-                      {e.origen !== "app" && <Pastilla>{e.origen}</Pastilla>}
-                      <span className="text-sm font-medium">{e.titulo}</span>
-                    </div>
-                    {e.cuerpo && (
-                      <p
-                        className="text-sm mt-1 whitespace-pre-wrap"
-                        style={{ color: "var(--texto-2)" }}
-                      >
-                        {e.cuerpo}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+            {eventos.map((e) => (
+              <EventoLinea
+                key={e.id}
+                evento={e}
+                actualizaciones={actualizaciones[e.id] ?? []}
+                adjuntos={adjuntos[e.id] ?? []}
+              />
+            ))}
           </div>
         )}
       </Seccion>
