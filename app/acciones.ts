@@ -6,6 +6,7 @@ import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { sql, uno, enTransaccion } from "@/lib/db";
 import { sesionActual } from "@/lib/auth";
+import { aSegundos } from "@/lib/aht";
 import {
   LIMITE_BYTES,
   MAX_ARCHIVOS_POR_SUBIDA,
@@ -599,6 +600,96 @@ export async function borrarMetricaMes(datos: FormData) {
   const id = z.uuid().parse(campo(datos, "id"));
   const clienteId = z.uuid().parse(campo(datos, "cliente_id"));
   await sql("delete from metrica_mes where id = $1", [id]);
+  revalidatePath(`/clientes/${clienteId}`);
+}
+
+
+// ---------------------------------------------------------------- línea base
+
+const CAMPOS_BASE = [
+  ["volumen_mensual_promedio", "volumen mensual"],
+  ["aht_promedio_seg", "AHT"],
+  ["concurrencia_promedio", "concurrencia promedio"],
+  ["concurrencia_maxima", "concurrencia máxima"],
+  ["meta_contencion_pct", "meta de contención"],
+] as const;
+
+/**
+ * Guarda los supuestos que entregó el partner. Si cambian valores que ya
+ * existían, queda un evento en el timeline: que TP revise el forecast a mitad
+ * de proyecto es información de producto, no una corrección silenciosa.
+ */
+export async function guardarLineaBase(datos: FormData) {
+  const clienteId = z.uuid().parse(campo(datos, "cliente_id"));
+
+  const valores = {
+    volumen_mensual_promedio: numero(campo(datos, "volumen_mensual_promedio"), "Volumen"),
+    aht_promedio_seg: aSegundos(campo(datos, "aht_promedio_seg")),
+    concurrencia_promedio: numero(campo(datos, "concurrencia_promedio"), "Concurrencia"),
+    concurrencia_maxima: numero(campo(datos, "concurrencia_maxima"), "Concurrencia máxima"),
+    meta_contencion_pct: numero(campo(datos, "meta_contencion_pct"), "Contención", 100),
+    horario_operativo: campo(datos, "horario_operativo").trim() || null,
+    entregado_por: campo(datos, "entregado_por").trim() || null,
+    fecha_entrega: campo(datos, "fecha_entrega").trim() || null,
+    notas: campo(datos, "notas").trim() || null,
+  };
+
+  await enTransaccion(async (q) => {
+    const [previo] = await q<Record<string, number | string | null>>(
+      "select * from linea_base where id = $1 for update",
+      [clienteId],
+    );
+
+    await q(
+      `insert into linea_base
+         (id, volumen_mensual_promedio, aht_promedio_seg, concurrencia_promedio,
+          concurrencia_maxima, meta_contencion_pct, horario_operativo,
+          entregado_por, fecha_entrega, notas)
+       values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+       on conflict (id) do update set
+         volumen_mensual_promedio = excluded.volumen_mensual_promedio,
+         aht_promedio_seg         = excluded.aht_promedio_seg,
+         concurrencia_promedio    = excluded.concurrencia_promedio,
+         concurrencia_maxima      = excluded.concurrencia_maxima,
+         meta_contencion_pct      = excluded.meta_contencion_pct,
+         horario_operativo        = excluded.horario_operativo,
+         entregado_por            = excluded.entregado_por,
+         fecha_entrega            = excluded.fecha_entrega,
+         notas                    = excluded.notas,
+         actualizado_en           = now()`,
+      [
+        clienteId,
+        valores.volumen_mensual_promedio,
+        valores.aht_promedio_seg,
+        valores.concurrencia_promedio,
+        valores.concurrencia_maxima,
+        valores.meta_contencion_pct,
+        valores.horario_operativo,
+        valores.entregado_por,
+        valores.fecha_entrega,
+        valores.notas,
+      ],
+    );
+
+    if (!previo) return;
+
+    const cambios = CAMPOS_BASE.filter(([clave]) => {
+      const antes = previo[clave];
+      const ahora = valores[clave];
+      if (antes === null || antes === undefined) return false;
+      return Number(antes) !== Number(ahora);
+    }).map(([clave, etiqueta]) => `${etiqueta}: ${previo[clave]} → ${valores[clave] ?? "—"}`);
+
+    if (cambios.length > 0) {
+      await q(
+        `insert into evento (cliente_id, tipo, titulo, cuerpo, severidad, origen)
+         values ($1, 'cambio_scope', $2, $3, 'media', 'app')`,
+        [clienteId, "Cambia la línea base entregada por el partner", cambios.join("\n")],
+      );
+    }
+  });
+
+  revalidatePath(`/clientes/${clienteId}/metricas`);
   revalidatePath(`/clientes/${clienteId}`);
 }
 

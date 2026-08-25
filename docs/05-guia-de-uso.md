@@ -74,6 +74,19 @@ la suma de días de ese mes, así que puedes cargar el histórico sin inventar d
 En la tabla mensual, cada fila indica su origen: `mensual` si se cargó a mano, o el
 número de días registrados si sale de la captura diaria.
 
+### Línea base del partner
+
+En la pestaña de Métricas de cada cliente, *Línea base del partner* guarda los supuestos
+que entrega TP antes de salir a producción: volumen mensual, AHT promedio, concurrencia
+media y máxima, y la meta de contención cuando la dan.
+
+Con eso, arriba de la tabla aparece **mes en curso contra línea base** — esperado, real y
+desvío. En el AHT el color se invierte: quedarse por debajo de lo esperado es bueno.
+
+El AHT se escribe como `5:10` o como segundos (`310`). Cambiar un valor que ya existía
+deja un evento en el timeline, porque que el partner revise el forecast a mitad de
+proyecto es información de producto, no una corrección silenciosa.
+
 ### Objetivo del mes
 
 Lo vendido al cliente para ese mes. Con él, la tabla muestra el porcentaje de

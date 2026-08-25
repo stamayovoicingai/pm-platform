@@ -108,6 +108,12 @@ alertaran, el canal de Slack sería ruido y se dejaría de leer.
 `hito_cambio_fecha`. Es lo que a los seis meses permite decir con datos por qué se
 retrasan las salidas.
 
+**Línea base y objetivo mensual son cosas distintas.** `linea_base` son los supuestos
+únicos con los que el partner dimensionó el proyecto antes de producción, y es contra lo
+que se contrasta la realidad. `objetivo_mes` es el compromiso comercial de un mes
+concreto. Mezclarlos obligaría a recargar la línea base cada mes y se perdería la
+referencia original.
+
 **Un mes histórico no es un día suelto.** Los totales mensuales cargados a mano viven en
 `metrica_mes`, no como una fila de `metrica_dia` el día 1. Guardarlos ahí falsearía el
 promedio diario, el conteo de días con actividad y cualquier gráfica futura. Al consultar,
