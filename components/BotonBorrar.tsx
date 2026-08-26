@@ -3,15 +3,17 @@
 import { useEffect, useState } from "react";
 
 /**
- * Borrar en dos pasos, sin diálogo del navegador.
+ * Borrar en dos pasos: el primer clic arma, el segundo borra.
  *
- * El primer clic solo cambia la etiqueta; el segundo envía. Es la diferencia
- * entre perder un registro por un clic despistado y tener que quererlo. Vuelve
- * solo a su estado inicial si no se confirma.
+ * El tipo del botón es SIEMPRE submit y el primer clic se cancela con
+ * preventDefault. Cambiar el tipo de button a submit dentro del manejador no
+ * funciona: React aplica el cambio de estado de forma síncrona antes de que el
+ * navegador resuelva la acción por defecto del clic, así que el formulario se
+ * enviaba en el primer intento y la confirmación no llegaba a verse nunca.
  */
 export default function BotonBorrar({
   etiqueta = "Borrar",
-  confirmacion = "¿Seguro?",
+  confirmacion = "Confirmar borrado",
 }: {
   etiqueta?: string;
   confirmacion?: string;
@@ -20,20 +22,30 @@ export default function BotonBorrar({
 
   useEffect(() => {
     if (!armado) return;
-    const t = setTimeout(() => setArmado(false), 4000);
+    const t = setTimeout(() => setArmado(false), 5000);
     return () => clearTimeout(t);
   }, [armado]);
 
   return (
     <button
-      type={armado ? "submit" : "button"}
-      onClick={() => {
-        if (!armado) setArmado(true);
+      type="submit"
+      onClick={(evento) => {
+        if (!armado) {
+          evento.preventDefault();
+          setArmado(true);
+        }
       }}
-      className="text-xs"
-      style={{ color: armado ? "var(--riesgo)" : "var(--texto-3)", fontWeight: armado ? 600 : 400 }}
+      className="pastilla"
+      style={{
+        cursor: "pointer",
+        padding: "0.25rem 0.6rem",
+        background: armado ? "var(--riesgo)" : "var(--riesgo-suave)",
+        color: armado ? "#fff" : "var(--riesgo)",
+        border: `1px solid ${armado ? "transparent" : "var(--riesgo)"}`,
+      }}
+      title={armado ? undefined : etiqueta}
     >
-      {armado ? confirmacion : etiqueta}
+      {armado ? `⚠ ${confirmacion}` : `🗑 ${etiqueta}`}
     </button>
   );
 }

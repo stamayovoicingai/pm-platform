@@ -202,7 +202,11 @@ export default async function EventoLinea({
               </div>
             </form>
 
-            <form action={borrarEvento} className="mt-3">
+            <form
+              action={borrarEvento}
+              className="mt-4 pt-3"
+              style={{ borderTop: "1px solid var(--borde)" }}
+            >
               <input type="hidden" name="id" value={evento.id} />
               <input type="hidden" name="cliente_id" value={evento.cliente_id} />
               <BotonBorrar

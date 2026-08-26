@@ -139,7 +139,11 @@ export default async function BloqueHito({
             {t("La fecha se cambia desde “Mover fecha”, que pide un motivo.")}
           </p>
 
-          <form action={borrarHito} className="mt-2">
+          <form
+            action={borrarHito}
+            className="mt-4 pt-3"
+            style={{ borderTop: "1px solid var(--borde)" }}
+          >
             <input type="hidden" name="id" value={hito.id} />
             <input type="hidden" name="cliente_id" value={hito.cliente_id} />
             <BotonBorrar
