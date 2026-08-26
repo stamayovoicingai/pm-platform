@@ -1,6 +1,7 @@
 import Pastilla from "./Pastilla";
-import { moverFechaHito, cambiarEstadoHito } from "@/app/acciones";
-import { ETIQUETA_HITO, ETIQUETA_ESTADO_HITO, ESTADOS_HITO } from "@/lib/dominio";
+import { moverFechaHito, cambiarEstadoHito, editarHito, borrarHito } from "@/app/acciones";
+import BotonBorrar from "./BotonBorrar";
+import { ETIQUETA_HITO, ETIQUETA_ESTADO_HITO, ESTADOS_HITO, TIPOS_HITO } from "@/lib/dominio";
 import { fechaCorta, textoRelativo, diasHasta, aISO } from "@/lib/fechas";
 import type { HitoFila, CambioFecha } from "@/lib/consultas/hitos";
 
@@ -104,6 +105,56 @@ export default async function BloqueHito({
               ))}
             </ul>
           )}
+        </details>
+
+        <details className="grow">
+          <summary
+            className="text-xs cursor-pointer select-none"
+            style={{ color: "var(--texto-3)" }}
+          >
+            {t("Editar")}
+          </summary>
+
+          <form action={editarHito} className="mt-3 space-y-2">
+            <input type="hidden" name="id" value={hito.id} />
+            <input type="hidden" name="cliente_id" value={hito.cliente_id} />
+            <div className="grid sm:grid-cols-[1fr_11rem_auto] gap-2 items-end">
+              <div>
+                <label className="etiqueta">{t("Título")}</label>
+                <input name="titulo" required defaultValue={hito.titulo} className="campo" />
+              </div>
+              <div>
+                <label className="etiqueta">{t("Tipo")}</label>
+                <select name="tipo" className="campo" defaultValue={hito.tipo}>
+                  {TIPOS_HITO.map((opcion) => (
+                    <option key={opcion} value={opcion}>
+                      {t(ETIQUETA_HITO[opcion])}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button type="submit" className="boton">
+                {t("Guardar")}
+              </button>
+            </div>
+            <div>
+              <label className="etiqueta">{t("Notas")}</label>
+              <input name="notas" defaultValue={hito.notas ?? ""} className="campo" />
+            </div>
+          </form>
+
+          <p className="text-xs mt-2" style={{ color: "var(--texto-3)" }}>
+            {t("La fecha se cambia desde “Mover fecha”, que pide un motivo.")}
+          </p>
+
+          <form action={borrarHito} className="mt-2">
+            <input type="hidden" name="id" value={hito.id} />
+            <input type="hidden" name="cliente_id" value={hito.cliente_id} />
+            <BotonBorrar
+              etiqueta={t("Borrar este hito")}
+              confirmacion={t("Confirmar borrado")}
+            />
+          </form>
         </details>
 
         <form action={cambiarEstadoHito} className="flex items-center gap-1.5 shrink-0">

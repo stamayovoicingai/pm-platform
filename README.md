@@ -14,9 +14,11 @@ actualizaciones, hitos con historial de cambios de fecha, compromisos y contacto
 totales mensuales históricos; objetivos por mes; tabla mensual con deltas. Cambio de
 contraseña desde la interfaz.
 
+**Slack.** Avisos programados, registro por texto libre clasificado con IA y captura de
+métricas desde un modal. Ver `docs/06-slack.md`.
+
 Pendiente: curvas con eventos superpuestos, motor de banderas y dashboard filtrable
-(resto de Fase 2), ingesta de transcripts con LLM (Fase 3), stack histórico (Fase 4),
-integración con Slack.
+(resto de Fase 2), ingesta de transcripts con LLM (Fase 3), stack histórico (Fase 4).
 
 ## Desarrollo local
 

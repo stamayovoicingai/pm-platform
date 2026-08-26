@@ -4,7 +4,11 @@ import {
   subirAdjunto,
   borrarAdjunto,
   activarSeguimiento,
+  editarEvento,
+  borrarEvento,
+  borrarActualizacion,
 } from "@/app/acciones";
+import BotonBorrar from "./BotonBorrar";
 import {
   LIMITE_BYTES,
   MAX_ARCHIVOS_POR_SUBIDA,
@@ -14,10 +18,14 @@ import {
   ETIQUETA_EVENTO,
   ETIQUETA_SEGUIMIENTO,
   ESTADOS_SEGUIMIENTO,
+  TIPOS_EVENTO_MANUAL,
+  SEVERIDADES,
+  ETIQUETA_EVENTO as ETIQUETA_TIPO,
+  ETIQUETA_SEVERIDAD,
   colorEvento,
   colorSeguimiento,
 } from "@/lib/dominio";
-import { fechaCorta, textoRelativo } from "@/lib/fechas";
+import { fechaCorta, textoRelativo, aISO } from "@/lib/fechas";
 import type { EventoFila, Actualizacion } from "@/lib/consultas/eventos";
 import type { AdjuntoFila } from "@/lib/consultas/adjuntos";
 
@@ -148,6 +156,70 @@ export default async function EventoLinea({
             <summary
               className="text-xs cursor-pointer select-none inline-block"
               style={{ color: "var(--texto-3)" }}
+            >
+              {t("Editar")}
+            </summary>
+
+            <form action={editarEvento} className="mt-2 space-y-2">
+              <input type="hidden" name="id" value={evento.id} />
+              <input type="hidden" name="cliente_id" value={evento.cliente_id} />
+              <input name="titulo" required defaultValue={evento.titulo} className="campo" />
+              <textarea
+                name="cuerpo"
+                rows={2}
+                defaultValue={evento.cuerpo ?? ""}
+                className="campo"
+              />
+              <div className="grid sm:grid-cols-[1fr_9rem_8rem_auto] gap-2 items-end">
+                <div>
+                  <label className="etiqueta">{t("Tipo")}</label>
+                  <select name="tipo" className="campo" defaultValue={evento.tipo}>
+                    {TIPOS_EVENTO_MANUAL.map((opcion) => (
+                      <option key={opcion} value={opcion}>
+                        {t(ETIQUETA_TIPO[opcion])}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="etiqueta">{t("Fecha")}</label>
+                  <input
+                    type="date"
+                    name="fecha_evento"
+                    defaultValue={aISO(evento.fecha_evento)}
+                    className="campo"
+                  />
+                </div>
+                <div>
+                  <label className="etiqueta">{t("Severidad")}</label>
+                  <select name="severidad" className="campo" defaultValue={evento.severidad}>
+                    {SEVERIDADES.map((sev) => (
+                      <option key={sev} value={sev}>
+                        {t(ETIQUETA_SEVERIDAD[sev])}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <button type="submit" className="boton">
+                  {t("Guardar")}
+                </button>
+              </div>
+            </form>
+
+            <form action={borrarEvento} className="mt-3">
+              <input type="hidden" name="id" value={evento.id} />
+              <input type="hidden" name="cliente_id" value={evento.cliente_id} />
+              <BotonBorrar
+                etiqueta={t("Borrar este registro")}
+                confirmacion={t("Confirmar borrado")}
+              />
+            </form>
+          </details>
+
+          <details className="mt-2">
+            <summary
+              className="text-xs cursor-pointer select-none inline-block"
+              style={{ color: "var(--texto-3)" }}
             >{t("Adjuntar archivo")}</summary>
             <form action={subirAdjunto} className="mt-2 flex flex-wrap items-center gap-2">
               <input type="hidden" name="evento_id" value={evento.id} />
@@ -204,12 +276,19 @@ export default async function EventoLinea({
                           </Pastilla>
                         )}
                       </div>
-                      <p
-                        className="text-sm whitespace-pre-wrap"
-                        style={{ color: "var(--texto-2)" }}
-                      >
-                        {a.cuerpo}
-                      </p>
+                      <div className="flex items-start gap-2">
+                        <p
+                          className="text-sm whitespace-pre-wrap flex-1"
+                          style={{ color: "var(--texto-2)" }}
+                        >
+                          {a.cuerpo}
+                        </p>
+                        <form action={borrarActualizacion} className="shrink-0">
+                          <input type="hidden" name="id" value={a.id} />
+                          <input type="hidden" name="cliente_id" value={evento.cliente_id} />
+                          <BotonBorrar etiqueta="×" confirmacion="borrar" />
+                        </form>
+                      </div>
                     </li>
                   ))}
                 </ol>

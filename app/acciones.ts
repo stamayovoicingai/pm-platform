@@ -6,6 +6,7 @@ import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { sql, uno, enTransaccion } from "@/lib/db";
 import { sesionActual } from "@/lib/auth";
+import { guardarDiaMetricas } from "@/lib/metricasGuardar";
 import {
   TEMAS,
   IDIOMAS,
@@ -354,6 +355,165 @@ export async function borrarAdjunto(datos: FormData) {
   revalidatePath("/");
 }
 
+
+// ---------------------------------------------------------------- edición
+
+export async function editarEvento(datos: FormData) {
+  const v = z
+    .object({
+      id: z.uuid(),
+      cliente_id: z.uuid(),
+      tipo: z.enum(TIPOS_EVENTO),
+      titulo: texto,
+      cuerpo: opcional,
+      fecha_evento: fecha,
+      severidad: z.enum(SEVERIDADES),
+    })
+    .parse({
+      id: campo(datos, "id"),
+      cliente_id: campo(datos, "cliente_id"),
+      tipo: campo(datos, "tipo"),
+      titulo: campo(datos, "titulo"),
+      cuerpo: campo(datos, "cuerpo"),
+      fecha_evento: campo(datos, "fecha_evento"),
+      severidad: campo(datos, "severidad"),
+    });
+
+  await sql(
+    `update evento set tipo = $2, titulo = $3, cuerpo = $4,
+                       fecha_evento = $5, severidad = $6
+     where id = $1`,
+    [v.id, v.tipo, v.titulo, v.cuerpo, v.fecha_evento, v.severidad],
+  );
+
+  revalidatePath(`/clientes/${v.cliente_id}/timeline`);
+  revalidatePath("/");
+}
+
+export async function borrarActualizacion(datos: FormData) {
+  const id = z.uuid().parse(campo(datos, "id"));
+  const clienteId = z.uuid().parse(campo(datos, "cliente_id"));
+  await sql("delete from evento_actualizacion where id = $1", [id]);
+  revalidatePath(`/clientes/${clienteId}/timeline`);
+}
+
+export async function editarHito(datos: FormData) {
+  const v = z
+    .object({
+      id: z.uuid(),
+      cliente_id: z.uuid(),
+      tipo: z.enum(TIPOS_HITO),
+      titulo: texto,
+      notas: opcional,
+    })
+    .parse({
+      id: campo(datos, "id"),
+      cliente_id: campo(datos, "cliente_id"),
+      tipo: campo(datos, "tipo"),
+      titulo: campo(datos, "titulo"),
+      notas: campo(datos, "notas"),
+    });
+
+  // La fecha no se toca aquí a propósito: moverla exige un motivo y va por
+  // moverFechaHito, que deja rastro.
+  await sql("update hito set tipo = $2, titulo = $3, notas = $4 where id = $1", [
+    v.id,
+    v.tipo,
+    v.titulo,
+    v.notas,
+  ]);
+
+  revalidatePath(`/clientes/${v.cliente_id}/hitos`);
+  revalidatePath("/hitos");
+  revalidatePath("/");
+}
+
+export async function borrarHito(datos: FormData) {
+  const id = z.uuid().parse(campo(datos, "id"));
+  const clienteId = z.uuid().parse(campo(datos, "cliente_id"));
+  await sql("delete from hito where id = $1", [id]);
+  revalidatePath(`/clientes/${clienteId}/hitos`);
+  revalidatePath("/hitos");
+  revalidatePath("/");
+}
+
+export async function editarCompromiso(datos: FormData) {
+  const v = z
+    .object({
+      id: z.uuid(),
+      cliente_id: z.uuid(),
+      descripcion: texto,
+      lado: z.enum(LADOS),
+      responsable_id: opcional,
+      fecha_limite: z
+        .string()
+        .transform((s) => (s.trim() === "" ? null : s.trim()))
+        .nullable()
+        .refine((s) => s === null || /^\d{4}-\d{2}-\d{2}$/.test(s), "Fecha inválida"),
+    })
+    .parse({
+      id: campo(datos, "id"),
+      cliente_id: campo(datos, "cliente_id"),
+      descripcion: campo(datos, "descripcion"),
+      lado: campo(datos, "lado"),
+      responsable_id: campo(datos, "responsable_id"),
+      fecha_limite: campo(datos, "fecha_limite"),
+    });
+
+  await sql(
+    `update compromiso set descripcion = $2, lado = $3, responsable_id = $4, fecha_limite = $5
+     where id = $1`,
+    [v.id, v.descripcion, v.lado, v.responsable_id, v.fecha_limite],
+  );
+
+  revalidatePath(`/clientes/${v.cliente_id}/compromisos`);
+  revalidatePath("/compromisos");
+  revalidatePath("/");
+}
+
+export async function borrarCompromiso(datos: FormData) {
+  const id = z.uuid().parse(campo(datos, "id"));
+  const clienteId = z.uuid().parse(campo(datos, "cliente_id"));
+  await sql("delete from compromiso where id = $1", [id]);
+  revalidatePath(`/clientes/${clienteId}/compromisos`);
+  revalidatePath("/compromisos");
+  revalidatePath("/");
+}
+
+export async function editarContacto(datos: FormData) {
+  const v = z
+    .object({
+      id: z.uuid(),
+      cliente_id: z.uuid(),
+      nombre: texto,
+      rol: opcional,
+      lado: z.enum(LADOS),
+      email: opcional,
+    })
+    .parse({
+      id: campo(datos, "id"),
+      cliente_id: campo(datos, "cliente_id"),
+      nombre: campo(datos, "nombre"),
+      rol: campo(datos, "rol"),
+      lado: campo(datos, "lado"),
+      email: campo(datos, "email"),
+    });
+
+  await sql(
+    "update contacto set nombre = $2, rol = $3, lado = $4, email = $5 where id = $1",
+    [v.id, v.nombre, v.rol, v.lado, v.email],
+  );
+
+  revalidatePath(`/clientes/${v.cliente_id}/contactos`);
+}
+
+export async function borrarMetricaDia(datos: FormData) {
+  const clienteId = z.uuid().parse(campo(datos, "cliente_id"));
+  const dia = fecha.parse(campo(datos, "fecha"));
+  await sql("delete from metrica_dia where cliente_id = $1 and fecha = $2", [clienteId, dia]);
+  revalidatePath("/metricas");
+}
+
 // ---------------------------------------------------------------- hitos
 
 export async function crearHito(datos: FormData) {
@@ -536,49 +696,16 @@ export async function guardarMetricasDia(datos: FormData) {
   const fechaDia = fecha.parse(campo(datos, "fecha"));
   const ids = datos.getAll("cliente_id").map((v) => z.uuid().parse(String(v)));
 
-  await enTransaccion(async (q) => {
-    for (const id of ids) {
-      const sinActividad = campo(datos, `sin_actividad_${id}`) === "on";
-      const llamadas = numero(campo(datos, `llamadas_${id}`), "Llamadas");
-      const minutos = numero(campo(datos, `minutos_${id}`), "Minutos");
-      const contencion = numero(campo(datos, `contencion_${id}`), "Contención", 100);
-      const notas = campo(datos, `notas_${id}`).trim() || null;
+  const entradas = ids.map((id) => ({
+    clienteId: id,
+    llamadas: numero(campo(datos, `llamadas_${id}`), "Llamadas"),
+    minutos: numero(campo(datos, `minutos_${id}`), "Minutos"),
+    contencion: numero(campo(datos, `contencion_${id}`), "Contención", 100),
+    sinActividad: campo(datos, `sin_actividad_${id}`) === "on",
+    notas: campo(datos, `notas_${id}`).trim() || null,
+  }));
 
-      const vacio = llamadas === null && minutos === null && contencion === null;
-
-      if (vacio && !sinActividad) {
-        // Nada que guardar. Si ya existía una fila de ese día, se respeta:
-        // borrarla al enviar el formulario en blanco sería destruir sin querer.
-        continue;
-      }
-
-      if (!sinActividad && llamadas === null) {
-        throw new Error("Si el día tuvo actividad, hacen falta al menos las llamadas");
-      }
-
-      await q(
-        `insert into metrica_dia
-           (cliente_id, fecha, llamadas_totales, duracion_total_min,
-            contencion_pct, sin_actividad, notas, origen)
-         values ($1, $2, $3, $4, $5, $6, $7, 'app')
-         on conflict (cliente_id, fecha) do update set
-           llamadas_totales   = excluded.llamadas_totales,
-           duracion_total_min = excluded.duracion_total_min,
-           contencion_pct     = excluded.contencion_pct,
-           sin_actividad      = excluded.sin_actividad,
-           notas              = excluded.notas`,
-        [
-          id,
-          fechaDia,
-          sinActividad ? null : llamadas,
-          sinActividad ? null : minutos,
-          sinActividad ? null : contencion,
-          sinActividad,
-          notas,
-        ],
-      );
-    }
-  });
+  await guardarDiaMetricas(fechaDia, entradas);
 
   revalidatePath("/metricas");
   revalidatePath("/clientes");

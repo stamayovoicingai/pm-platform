@@ -1,10 +1,16 @@
 import { compromisosCliente } from "@/lib/consultas/compromisos";
 import { contactosCliente } from "@/lib/consultas/contactos";
-import { crearCompromiso, cambiarEstadoCompromiso } from "@/app/acciones";
+import {
+  crearCompromiso,
+  cambiarEstadoCompromiso,
+  editarCompromiso,
+  borrarCompromiso,
+} from "@/app/acciones";
+import BotonBorrar from "@/components/BotonBorrar";
 import Pastilla from "@/components/Pastilla";
 import { Vacio } from "@/components/Seccion";
 import { LADOS, ETIQUETA_LADO } from "@/lib/dominio";
-import { textoRelativo, diasHasta } from "@/lib/fechas";
+import { textoRelativo, diasHasta, aISO } from "@/lib/fechas";
 
 import { crearTraductor } from "@/lib/i18n";
 import { leerIdioma } from "@/lib/preferencias";
@@ -84,11 +90,8 @@ export default async function CompromisosCliente({
             const dias = diasHasta(c.fecha_limite);
             const vencido = dias !== null && dias < 0;
             return (
-              <div
-                key={c.id}
-                className="flex items-center gap-3 px-4 py-3"
-                style={{ borderColor: "var(--borde)" }}
-              >
+              <div key={c.id} className="px-4 py-3" style={{ borderColor: "var(--borde)" }}>
+                <div className="flex items-center gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-sm">{c.descripcion}</span>
@@ -108,6 +111,71 @@ export default async function CompromisosCliente({
                   <input type="hidden" name="estado" value="cumplido" />
                   <button type="submit" className="boton-suave text-xs">{t("Cumplido")}</button>
                 </form>
+                </div>
+
+                <details className="mt-2">
+                  <summary
+                    className="text-xs cursor-pointer select-none"
+                    style={{ color: "var(--texto-3)" }}
+                  >
+                    {t("Editar")}
+                  </summary>
+
+                  <form action={editarCompromiso} className="mt-2 space-y-2">
+                    <input type="hidden" name="id" value={c.id} />
+                    <input type="hidden" name="cliente_id" value={id} />
+                    <input
+                      name="descripcion"
+                      required
+                      defaultValue={c.descripcion}
+                      className="campo"
+                    />
+                    <div className="grid sm:grid-cols-[8rem_1fr_10rem_auto] gap-2 items-end">
+                      <div>
+                        <label className="etiqueta">{t("Lado")}</label>
+                        <select name="lado" className="campo" defaultValue={c.lado}>
+                          {LADOS.map((l) => (
+                            <option key={l} value={l}>
+                              {t(ETIQUETA_LADO[l])}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="etiqueta">{t("Responsable")}</label>
+                        <select name="responsable_id" className="campo" defaultValue="">
+                          <option value="">{t("Sin asignar")}</option>
+                          {contactos.map((ct) => (
+                            <option key={ct.id} value={ct.id}>
+                              {ct.nombre}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="etiqueta">{t("Fecha límite")}</label>
+                        <input
+                          type="date"
+                          name="fecha_limite"
+                          defaultValue={c.fecha_limite ? aISO(c.fecha_limite) : ""}
+                          className="campo"
+                        />
+                      </div>
+                      <button type="submit" className="boton">
+                        {t("Guardar")}
+                      </button>
+                    </div>
+                  </form>
+
+                  <form action={borrarCompromiso} className="mt-2">
+                    <input type="hidden" name="id" value={c.id} />
+                    <input type="hidden" name="cliente_id" value={id} />
+                    <BotonBorrar
+                      etiqueta={t("Borrar este compromiso")}
+                      confirmacion={t("Confirmar borrado")}
+                    />
+                  </form>
+                </details>
               </div>
             );
           })}

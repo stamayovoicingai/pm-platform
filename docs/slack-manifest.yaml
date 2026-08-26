@@ -1,0 +1,35 @@
+# Pegar en api.slack.com/apps → Create New App → From a manifest.
+#
+# Si tu canal es privado, cambia channels:history por groups:history y
+# message.channels por message.groups. Con canal público, déjalo tal cual.
+#
+# Ajusta el dominio si cambias el de la app.
+display_information:
+  name: PM Platform
+  description: Recordatorios y registro rápido del centro de control de producto
+  background_color: "#1f5f4f"
+
+features:
+  bot_user:
+    display_name: PM Platform
+    always_online: false
+
+oauth_config:
+  scopes:
+    bot:
+      # Publicar los avisos y las respuestas en hilo
+      - chat:write
+      # Leer los mensajes del canal para poder clasificarlos
+      - channels:history
+
+settings:
+  event_subscriptions:
+    request_url: https://n8n-pm-app.hr3und.easypanel.host/api/slack/eventos
+    bot_events:
+      - message.channels
+  interactivity:
+    is_enabled: true
+    request_url: https://n8n-pm-app.hr3und.easypanel.host/api/slack/interactivo
+  org_deploy_enabled: false
+  socket_mode_enabled: false
+  token_rotation_enabled: false

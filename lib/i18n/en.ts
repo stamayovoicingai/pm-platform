@@ -218,6 +218,18 @@ export const EN: Record<string, string> = {
   "En inglés, lo que escribes se traduce automáticamente y la traducción queda guardada.":
     "In English, what you write is translated automatically and the translation is cached.",
 
+  // Edición
+  Editar: "Edit",
+  Borrar: "Delete",
+  "¿Seguro?": "Sure?",
+  "Confirmar borrado": "Confirm delete",
+  "Borrar este registro": "Delete this entry",
+  "Borrar este hito": "Delete this milestone",
+  "Borrar este compromiso": "Delete this commitment",
+  "Quitar contacto": "Remove contact",
+  "La fecha se cambia desde “Mover fecha”, que pide un motivo.":
+    "The date is changed from \u201CMove date\u201D, which asks for a reason.",
+
   // Marcadores de posición
   "Qué pasó": "What happened",
   "Qué pasó con esto": "What happened with this",

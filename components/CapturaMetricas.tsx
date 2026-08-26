@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { guardarMetricasDia } from "@/app/acciones";
 import type { MetricaDia } from "@/lib/consultas/metricas";
+import { interpretarBloque } from "@/lib/metricasTexto";
 
 import { useT } from "@/components/Idioma";
 type Fila = {
@@ -11,14 +12,6 @@ type Fila = {
   contencion: string;
   sinActividad: boolean;
 };
-
-function normalizar(texto: string) {
-  return texto
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim();
-}
 
 function inicial(m: MetricaDia): Fila {
   return {
@@ -58,43 +51,22 @@ export default function CapturaMetricas({
    * espacios: se toman los últimos números de la línea y el resto es el nombre.
    */
   function interpretar() {
-    const lineas = pegado.split("\n").map((l) => l.trim()).filter(Boolean);
+    const { lineas, reconocidos, ignorados } = interpretarBloque(
+      pegado,
+      clientes.map((c) => ({ id: c.cliente_id, nombre: c.cliente_nombre })),
+    );
+
     const nuevas = { ...filas };
-    const reconocidos: string[] = [];
-    const ignorados: string[] = [];
-
     for (const linea of lineas) {
-      const partes = linea.split(/[\s\t,;|]+/).filter(Boolean);
-      const numeros: string[] = [];
-      while (partes.length && /^-?\d+([.,]\d+)?%?$/.test(partes[partes.length - 1])) {
-        numeros.unshift(partes.pop()!.replace("%", "").replace(",", "."));
-      }
-      const nombre = normalizar(partes.join(" "));
-      if (!nombre || numeros.length === 0) {
-        ignorados.push(linea);
-        continue;
-      }
-
-      const cliente = clientes.find((c) => {
-        const n = normalizar(c.cliente_nombre);
-        return n === nombre || n.startsWith(nombre) || nombre.startsWith(n);
-      });
-
-      if (!cliente) {
-        ignorados.push(linea);
-        continue;
-      }
-
-      nuevas[cliente.cliente_id] = {
-        llamadas: numeros[0] ?? "",
-        minutos: numeros[1] ?? "",
-        contencion: numeros[2] ?? "",
+      nuevas[linea.clienteId] = {
+        llamadas: linea.llamadas,
+        minutos: linea.minutos,
+        contencion: linea.contencion,
         sinActividad: false,
       };
-      reconocidos.push(cliente.cliente_nombre);
     }
-
     setFilas(nuevas);
+
     setAviso(
       [
         reconocidos.length ? `Reconocidos: ${reconocidos.join(", ")}.` : null,
