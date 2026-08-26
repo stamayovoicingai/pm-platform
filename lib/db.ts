@@ -1,4 +1,15 @@
-import { Pool, type QueryResultRow } from "pg";
+import { Pool, types, type QueryResultRow } from "pg";
+
+/**
+ * Las columnas `date` se devuelven como texto 'YYYY-MM-DD', no como Date.
+ *
+ * Por defecto pg construye un Date a medianoche de la zona del proceso. En el
+ * contenedor esa zona es UTC, así que el 7 de septiembre llegaba como
+ * 2026-09-07T00:00:00Z y al formatearlo en America/Bogota retrocedía cinco
+ * horas: se mostraba el 6. Una fecha sin hora no es un instante y no debe
+ * pasar por una zona horaria.
+ */
+types.setTypeParser(types.builtins.DATE, (valor) => valor);
 
 declare global {
   // eslint-disable-next-line no-var
