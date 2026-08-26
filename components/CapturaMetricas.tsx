@@ -4,6 +4,7 @@ import { useState } from "react";
 import { guardarMetricasDia } from "@/app/acciones";
 import type { MetricaDia } from "@/lib/consultas/metricas";
 import { interpretarBloque } from "@/lib/metricasTexto";
+import { useAvisar } from "./Avisos";
 
 import { useT } from "@/components/Idioma";
 type Fila = {
@@ -41,6 +42,7 @@ export default function CapturaMetricas({
   const [aviso, setAviso] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [guardando, setGuardando] = useState(false);
+  const avisar = useAvisar();
 
   function cambiar(id: string, parcial: Partial<Fila>) {
     setFilas((previo) => ({ ...previo, [id]: { ...previo[id], ...parcial } }));
@@ -84,7 +86,8 @@ export default function CapturaMetricas({
         setError(null);
         try {
           await guardarMetricasDia(datos);
-          setAviso("Guardado.");
+          setAviso(null);
+          avisar(t("Día guardado"));
         } catch (e) {
           setError(e instanceof Error ? e.message : "No se pudo guardar");
         } finally {

@@ -18,6 +18,7 @@ function esRedireccion(error: unknown): boolean {
 }
 import Icono, { type NombreIcono } from "./Icono";
 import { useT } from "./Idioma";
+import { useAvisar } from "./Avisos";
 
 const Cerrar = createContext<() => void>(() => {});
 
@@ -40,6 +41,7 @@ export default function Modal({
   descripcion,
   icono = "mas",
   variante = "suave",
+  className,
   children,
 }: {
   etiqueta: string;
@@ -47,6 +49,8 @@ export default function Modal({
   descripcion?: string;
   icono?: NombreIcono;
   variante?: "principal" | "suave";
+  /** Para el disparador, cuando el sitio pide otro ancho. */
+  className?: string;
   children: React.ReactNode;
 }) {
   const t = useT();
@@ -75,7 +79,7 @@ export default function Modal({
       <button
         type="button"
         onClick={() => setAbierto(true)}
-        className={variante === "principal" ? "boton" : "boton-suave"}
+        className={`${variante === "principal" ? "boton" : "boton-suave"} ${className ?? ""}`}
       >
         <Icono nombre={icono} tam={13} />
         {etiqueta}
@@ -142,14 +146,18 @@ export default function Modal({
  */
 export function FormularioModal({
   accion,
+  confirmacion,
   children,
   className = "space-y-3",
 }: {
   accion: (datos: FormData) => Promise<void>;
+  /** El aviso que se muestra al terminar. Mismo verbo que el botón. */
+  confirmacion?: string;
   children: React.ReactNode;
   className?: string;
 }) {
   const cerrar = useCerrarModal();
+  const avisar = useAvisar();
   const [error, setError] = useState<string | null>(null);
   const [, setEnviando] = useState(false);
 
@@ -162,6 +170,7 @@ export function FormularioModal({
         try {
           await accion(datos);
           cerrar();
+          if (confirmacion) avisar(confirmacion);
         } catch (e) {
           if (esRedireccion(e)) throw e;
           setError(e instanceof Error ? e.message : "No se pudo guardar");

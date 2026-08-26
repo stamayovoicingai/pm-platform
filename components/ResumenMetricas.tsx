@@ -77,7 +77,7 @@ export default async function ResumenMetricas({
             descripcion={`${t("Lo vendido al cliente para")} ${nombreMes(periodoActual)}.`}
             icono="check"
           >
-            <FormularioModal accion={guardarObjetivoMes}>
+            <FormularioModal accion={guardarObjetivoMes} confirmacion={t("Objetivo guardado")}>
               <input type="hidden" name="cliente_id" value={clienteId} />
               <input type="hidden" name="periodo" value={periodoActual} />
               <div className="grid sm:grid-cols-2 gap-3">
@@ -115,7 +115,7 @@ export default async function ResumenMetricas({
             descripcion={t("Para meses de los que tienes el total pero no el día a día.")}
             icono="calendario"
           >
-            <FormularioModal accion={guardarMetricaMes}>
+            <FormularioModal accion={guardarMetricaMes} confirmacion={t("Mes guardado")}>
               <input type="hidden" name="cliente_id" value={clienteId} />
               <div className="grid sm:grid-cols-2 gap-3">
                 <div>

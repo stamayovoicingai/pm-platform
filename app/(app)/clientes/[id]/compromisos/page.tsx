@@ -44,7 +44,7 @@ export default async function CompromisosCliente({
           descripcion={t("Algo que alguien queda en hacer, con fecha.")}
           variante="principal"
         >
-          <FormularioModal accion={crearCompromiso}>
+          <FormularioModal accion={crearCompromiso} confirmacion={t("Compromiso añadido")}>
           <input type="hidden" name="cliente_id" value={id} />
           <div>
             <label className="etiqueta">{t("Qué se comprometió")}</label>

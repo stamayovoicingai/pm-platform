@@ -147,6 +147,15 @@ sobreescribiría lo que escribiste con su versión en inglés.
 Si no hay proveedor de IA configurado, el inglés se aplica solo a la interfaz y tu
 contenido se ve tal como lo escribiste.
 
+## La pantalla Hoy
+
+Arriba, cuatro cifras: asuntos abiertos, hitos en 7 días, compromisos vencidos y clientes
+sin novedad. Es la lectura de dos segundos antes de decidir dónde mirar.
+
+Debajo, dos columnas: a la izquierda lo que exige leer despacio —los asuntos abiertos—, y
+a la derecha lo que se comprueba de un vistazo. Los últimos registros quedan plegados al
+final, porque casi siempre repiten lo que ya está arriba.
+
 ## Cómo se crean las cosas
 
 Todo lo que se crea —un registro, un hito, un compromiso, un contacto, un mes de
@@ -154,7 +163,12 @@ métricas— se abre en un modal desde su botón, con el fondo desenfocado. Ante
 formularios fijos que empujaban hacia abajo lo que había que leer y competían con ello.
 
 El foco entra solo al primer campo, se cierra con Escape o clic fuera, y al guardar se
-cierra solo. Si algo falla, el modal se queda abierto con lo escrito dentro.
+cierra solo con un aviso de confirmación abajo a la derecha. Si algo falla, el modal se
+queda abierto con lo escrito dentro.
+
+La excepción es el *Registrar* del menú lateral: como puede ser para cualquier cliente,
+al guardar te lleva a su timeline. Ahí ver la entrada en su sitio es mejor confirmación
+que un aviso.
 
 ## Atajos que ahorran clics
 

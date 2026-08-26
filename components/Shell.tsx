@@ -118,6 +118,7 @@ export default function Shell({
               titulo={t("Nuevo registro")}
               descripcion={t("Elige el cliente y escribe lo que pasó.")}
               variante="principal"
+              className="w-full"
             >
               <FormularioEvento
                 hoy={hoy}

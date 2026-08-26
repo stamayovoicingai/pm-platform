@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useCerrarModal } from "./Modal";
+import { useAvisar } from "./Avisos";
 import { crearEvento } from "@/app/acciones";
 import { LIMITE_BYTES, MAX_ARCHIVOS_POR_SUBIDA, tamanoLegible } from "@/lib/adjuntos";
 import Icono from "./Icono";
@@ -40,6 +41,7 @@ export default function FormularioEvento({
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const cerrarModal = useCerrarModal();
+  const avisar = useAvisar();
 
   return (
     <form
@@ -53,6 +55,7 @@ export default function FormularioEvento({
           setTipo("nota");
           setSeguir(seguirPorDefecto("nota"));
           cerrarModal();
+          avisar(t("Registrado"));
         } catch (e) {
           if (
             typeof e === "object" && e !== null && "digest" in e &&

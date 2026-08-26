@@ -29,7 +29,7 @@ export default async function ContactosCliente({
           descripcion={t("Quién aprueba, quién bloquea, quién decide.")}
           variante="principal"
         >
-          <FormularioModal accion={crearContacto}>
+          <FormularioModal accion={crearContacto} confirmacion={t("Contacto añadido")}>
           <input type="hidden" name="cliente_id" value={id} />
           <div className="grid sm:grid-cols-4 gap-3">
             <div>

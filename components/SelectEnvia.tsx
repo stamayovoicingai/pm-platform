@@ -1,5 +1,7 @@
 "use client";
 
+import { useAvisar } from "./Avisos";
+
 /**
  * Select que envía su formulario al cambiar. Es el patrón de los desplegables
  * de estado de Jira: cambiar sin abrir nada ni buscar un botón de guardar.
@@ -15,11 +17,17 @@ export default function SelectEnvia({
   opciones: { valor: string; etiqueta: string }[];
   ancho?: string;
 }) {
+  const avisar = useAvisar();
+
   return (
     <select
       name={name}
       defaultValue={defaultValue}
-      onChange={(e) => e.currentTarget.form?.requestSubmit()}
+      onChange={(e) => {
+        const etiqueta = opciones.find((o) => o.valor === e.currentTarget.value)?.etiqueta;
+        e.currentTarget.form?.requestSubmit();
+        if (etiqueta) avisar(etiqueta);
+      }}
       className="text-xs rounded-md px-2 py-1 cursor-pointer"
       style={{
         background: "var(--superficie)",

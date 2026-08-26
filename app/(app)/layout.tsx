@@ -3,6 +3,7 @@ import { sesionActual, cerrarSesion } from "@/lib/auth";
 import { clientesSidebar } from "@/lib/consultas/clientes";
 import Shell from "@/components/Shell";
 import { ProveedorIdioma } from "@/components/Idioma";
+import { ProveedorAvisos } from "@/components/Avisos";
 import { puedeAdministrar, puedeEditar } from "@/lib/roles";
 import { hoy } from "@/lib/fechas";
 
@@ -26,6 +27,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <ProveedorIdioma idioma={idioma}>
+    <ProveedorAvisos>
     <Shell
       clientes={clientes}
       usuario={sesion.nombre}
@@ -40,6 +42,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     >
       {children}
     </Shell>
+    </ProveedorAvisos>
     </ProveedorIdioma>
   );
 }

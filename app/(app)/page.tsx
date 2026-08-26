@@ -2,42 +2,63 @@ import Link from "next/link";
 import { hitosProximos } from "@/lib/consultas/hitos";
 import { compromisosAbiertos } from "@/lib/consultas/compromisos";
 import { clientesEnSilencio } from "@/lib/consultas/clientes";
-import {
-  eventosRecientes,
-  eventosAbiertos,
-  actualizacionesDe,
-} from "@/lib/consultas/eventos";
+import { eventosRecientes, eventosAbiertos, actualizacionesDe } from "@/lib/consultas/eventos";
 import { adjuntosDe } from "@/lib/consultas/adjuntos";
 import { Seccion, Vacio } from "@/components/Seccion";
 import Pastilla from "@/components/Pastilla";
 import EventoLinea from "@/components/EventoLinea";
-import {
-  ETIQUETA_HITO,
-  ETIQUETA_EVENTO,
-  ETIQUETA_LADO,
-  colorEvento,
-} from "@/lib/dominio";
+import Icono from "@/components/Icono";
+import { ETIQUETA_HITO, ETIQUETA_LADO } from "@/lib/dominio";
 import { fechaCorta, textoRelativo, diasHasta } from "@/lib/fechas";
-
 import { crearTraductor } from "@/lib/i18n";
 import { leerIdioma } from "@/lib/preferencias";
 import { traducirFilas, traducirAgrupado } from "@/lib/traduccion";
+
 export const dynamic = "force-dynamic";
 
 function colorPorUrgencia(dias: number | null) {
-  if (dias === null) return { fondo: "var(--superficie-2)", texto: "var(--texto-2)" };
-  if (dias < 0) return { fondo: "var(--riesgo-suave)", texto: "var(--riesgo)" };
-  if (dias <= 3) return { fondo: "var(--oportunidad-suave)", texto: "var(--oportunidad)" };
-  return { fondo: "var(--superficie-2)", texto: "var(--texto-2)" };
+  if (dias === null) return "var(--texto-3)";
+  if (dias < 0) return "var(--riesgo)";
+  if (dias <= 3) return "var(--oportunidad)";
+  return "var(--texto-3)";
+}
+
+/**
+ * Cifra grande y etiqueta corta. Es la lectura de dos segundos: cuánto hay de
+ * cada cosa antes de decidir dónde mirar.
+ */
+function Señal({
+  valor,
+  etiqueta,
+  alerta = false,
+}: {
+  valor: number;
+  etiqueta: string;
+  alerta?: boolean;
+}) {
+  return (
+    <div className="tarjeta px-3.5 py-2.5">
+      <p
+        className="num text-xl font-semibold leading-none"
+        style={{ color: alerta && valor > 0 ? "var(--riesgo)" : "var(--texto)" }}
+      >
+        {valor}
+      </p>
+      <p className="text-xs mt-1" style={{ color: "var(--texto-3)" }}>
+        {etiqueta}
+      </p>
+    </div>
+  );
 }
 
 export default async function Hoy() {
   const t = crearTraductor(await leerIdioma());
+
   const [hitos, compromisos, silencio, eventos, abiertos] = await Promise.all([
     hitosProximos(30),
     compromisosAbiertos(7),
     clientesEnSilencio(14),
-    eventosRecientes(12),
+    eventosRecientes(8),
     eventosAbiertos(),
   ]);
 
@@ -56,158 +77,182 @@ export default async function Hoy() {
     traducirAgrupado(idioma, actualizaciones, ["cuerpo"]),
   ]);
 
-  const vencidos = compromisos.filter(
+  const vencidos = compromisosT.filter(
     (c) => c.fecha_limite && (diasHasta(c.fecha_limite) ?? 0) < 0,
   );
+  const urgentes = hitosT.filter((h) => (diasHasta(h.fecha_objetivo) ?? 99) <= 7);
 
   return (
     <>
-      <div className="mb-6">
+      <header className="mb-5">
         <p className="eyebrow mb-1">{t("Panorama")}</p>
         <h1 className="titulo-pagina">{t("Hoy")}</h1>
-        <p className="text-sm mt-1" style={{ color: "var(--texto-2)" }}>
-          {hitos.length} hito{hitos.length === 1 ? "" : "s"} en 30 días ·{" "}
-          {vencidos.length} compromiso{vencidos.length === 1 ? "" : "s"} vencido
-          {vencidos.length === 1 ? "" : "s"} · {abiertos.length} asunto
-          {abiertos.length === 1 ? "" : "s"} abierto{abiertos.length === 1 ? "" : "s"}
-        </p>
+      </header>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-7">
+        <Señal valor={abiertosT.length} etiqueta={t("Asuntos abiertos")} alerta />
+        <Señal valor={urgentes.length} etiqueta={t("Hitos en 7 días")} alerta />
+        <Señal valor={vencidos.length} etiqueta={t("Compromisos vencidos")} alerta />
+        <Señal valor={silencio.length} etiqueta={t("Clientes sin novedad")} />
       </div>
 
-      <Seccion titulo={t("Asuntos abiertos")} contador={abiertos.length}>
-        {abiertos.length === 0 ? (
-          <Vacio>Nada abierto. Ninguna incidencia, bloqueo ni riesgo sin cerrar.</Vacio>
-        ) : (
-          <div className="tarjeta py-1">
-            {abiertosT.map((e) => (
-              <EventoLinea
-                key={e.id}
-                evento={e}
-                actualizaciones={actualizacionesT[e.id] ?? []}
-                adjuntos={adjuntos[e.id] ?? []}
-                mostrarCliente
-                compacto
-              />
-            ))}
-          </div>
-        )}
-      </Seccion>
+      {/* Dos columnas en pantallas anchas: lo que exige leer despacio a la
+          izquierda, y a la derecha lo que se comprueba de un vistazo. Apiladas
+          ocupaban cuatro pantallas de scroll. */}
+      <div className="grid lg:grid-cols-[1.45fr_1fr] gap-x-6 items-start">
+        <div>
+          <Seccion titulo={t("Asuntos abiertos")} contador={abiertosT.length}>
+            {abiertosT.length === 0 ? (
+              <Vacio icono="check">
+                {t("Nada abierto. Ninguna incidencia, bloqueo ni riesgo sin cerrar.")}
+              </Vacio>
+            ) : (
+              <div className="tarjeta py-1">
+                {abiertosT.map((e) => (
+                  <EventoLinea
+                    key={e.id}
+                    evento={e}
+                    actualizaciones={actualizacionesT[e.id] ?? []}
+                    adjuntos={adjuntos[e.id] ?? []}
+                    mostrarCliente
+                    compacto
+                  />
+                ))}
+              </div>
+            )}
+          </Seccion>
+        </div>
 
-      <Seccion titulo={t("Hitos próximos")} contador={hitos.length}>
-        {hitos.length === 0 ? (
-          <Vacio icono="calendario">{t("Sin hitos en los próximos 30 días.")}</Vacio>
-        ) : (
-          <div className="tarjeta divide-y" style={{ borderColor: "var(--borde)" }}>
-            {hitosT.map((h) => {
-              const dias = diasHasta(h.fecha_objetivo);
-              const color = colorPorUrgencia(dias);
-              return (
-                <Link
-                  key={h.id}
-                  href={`/clientes/${h.cliente_id}/hitos`}
-                  className="flex items-center gap-3 px-4 py-3 hover:bg-[var(--superficie-2)] transition-colors"
-                  style={{ borderColor: "var(--borde)" }}
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-medium text-sm truncate">{h.titulo}</span>
-                      <Pastilla>{t(ETIQUETA_HITO[h.tipo])}</Pastilla>
+        <div>
+          <Seccion
+            titulo={t("Hitos próximos")}
+            contador={hitosT.length}
+            accion={
+              <Link href="/hitos" className="text-xs" style={{ color: "var(--texto-3)" }}>
+                {t("Ver todos")}
+              </Link>
+            }
+          >
+            {hitosT.length === 0 ? (
+              <Vacio icono="calendario">{t("Sin hitos en los próximos 30 días.")}</Vacio>
+            ) : (
+              <ul className="tarjeta divide-y" style={{ borderColor: "var(--borde)" }}>
+                {hitosT.slice(0, 6).map((h) => (
+                  <li key={h.id} style={{ borderColor: "var(--borde)" }}>
+                    <Link
+                      href={`/clientes/${h.cliente_id}/hitos`}
+                      className="flex items-baseline gap-2 px-3.5 py-2.5 hover:bg-[var(--superficie-2)]"
+                    >
+                      <time
+                        className="num text-xs shrink-0 whitespace-nowrap"
+                        style={{
+                          color: colorPorUrgencia(diasHasta(h.fecha_objetivo)),
+                          minWidth: "4.25rem",
+                        }}
+                      >
+                        {fechaCorta(h.fecha_objetivo)}
+                      </time>
+                      <span className="text-sm flex-1 min-w-0 truncate">{h.titulo}</span>
                       {h.veces_movido > 0 && (
-                        <Pastilla
-                          fondo="var(--oportunidad-suave)"
-                          texto="var(--oportunidad)"
-                          titulo={t("Veces que se ha movido la fecha")}
-                        >
-                          movido {h.veces_movido}×
+                        <Pastilla fondo="var(--oportunidad-suave)" texto="var(--oportunidad)">
+                          {h.veces_movido}×
                         </Pastilla>
                       )}
-                    </div>
-                    <p className="text-xs mt-0.5" style={{ color: "var(--texto-3)" }}>
-                      {h.cliente_nombre}
+                    </Link>
+                    <p
+                      className="px-3.5 pb-2 text-xs -mt-1"
+                      style={{ color: "var(--texto-3)" }}
+                    >
+                      {h.cliente_nombre} · {ETIQUETA_HITO[h.tipo]}
                     </p>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <div className="text-sm font-medium">{fechaCorta(h.fecha_objetivo)}</div>
-                    <div className="text-xs" style={{ color: color.texto }}>
-                      {textoRelativo(h.fecha_objetivo)}
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        )}
-      </Seccion>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Seccion>
 
-      <Seccion titulo={t("Compromisos abiertos")} contador={compromisos.length}>
-        {compromisos.length === 0 ? (
-          <Vacio icono="check">{t("Nada pendiente esta semana.")}</Vacio>
-        ) : (
-          <div className="tarjeta divide-y" style={{ borderColor: "var(--borde)" }}>
-            {compromisosT.map((c) => {
-              const dias = diasHasta(c.fecha_limite);
-              const color = colorPorUrgencia(dias);
-              return (
-                <Link
-                  key={c.id}
-                  href={`/clientes/${c.cliente_id}/compromisos`}
-                  className="flex items-center gap-3 px-4 py-3 hover:bg-[var(--superficie-2)] transition-colors"
-                  style={{ borderColor: "var(--borde)" }}
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm">{c.descripcion}</span>
-                      <Pastilla>{t(ETIQUETA_LADO[c.lado])}</Pastilla>
-                    </div>
-                    <p className="text-xs mt-0.5" style={{ color: "var(--texto-3)" }}>
-                      {c.cliente_nombre}
-                      {c.responsable_nombre ? ` · ${c.responsable_nombre}` : ""}
-                    </p>
-                  </div>
-                  <div className="text-xs shrink-0" style={{ color: color.texto }}>
-                    {c.fecha_limite ? textoRelativo(c.fecha_limite) : "sin fecha"}
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        )}
-      </Seccion>
-
-      <Seccion titulo={t("Clientes sin novedad")} contador={silencio.length}>
-        {silencio.length === 0 ? (
-          <Vacio icono="check">{t("Todos los clientes tienen registro reciente.")}</Vacio>
-        ) : (
-          <div className="tarjeta divide-y" style={{ borderColor: "var(--borde)" }}>
-            {silencio.map((c) => (
-              <Link
-                key={c.id}
-                href={`/clientes/${c.id}`}
-                className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-[var(--superficie-2)] transition-colors"
-                style={{ borderColor: "var(--borde)" }}
-              >
-                <span className="text-sm font-medium">{c.nombre}</span>
-                <span className="text-xs" style={{ color: "var(--texto-3)" }}>
-                  {c.ultimo_evento
-                    ? `último registro ${textoRelativo(c.ultimo_evento)}`
-                    : "sin registros"}
-                </span>
+          <Seccion
+            titulo={t("Compromisos")}
+            contador={compromisosT.length}
+            accion={
+              <Link href="/compromisos" className="text-xs" style={{ color: "var(--texto-3)" }}>
+                {t("Ver todos")}
               </Link>
-            ))}
-          </div>
-        )}
-      </Seccion>
+            }
+          >
+            {compromisosT.length === 0 ? (
+              <Vacio icono="check">{t("Nada pendiente esta semana.")}</Vacio>
+            ) : (
+              <ul className="tarjeta divide-y" style={{ borderColor: "var(--borde)" }}>
+                {compromisosT.slice(0, 6).map((c) => {
+                  const dias = diasHasta(c.fecha_limite);
+                  return (
+                    <li key={c.id} style={{ borderColor: "var(--borde)" }}>
+                      <Link
+                        href={`/clientes/${c.cliente_id}/compromisos`}
+                        className="block px-3.5 py-2.5 hover:bg-[var(--superficie-2)]"
+                      >
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-sm flex-1 min-w-0 truncate">
+                            {c.descripcion}
+                          </span>
+                          <span
+                            className="num text-xs shrink-0"
+                            style={{ color: colorPorUrgencia(dias) }}
+                          >
+                            {c.fecha_limite ? textoRelativo(c.fecha_limite) : "—"}
+                          </span>
+                        </div>
+                        <p className="text-xs mt-0.5" style={{ color: "var(--texto-3)" }}>
+                          {c.cliente_nombre} · {ETIQUETA_LADO[c.lado]}
+                        </p>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </Seccion>
 
-      <Seccion titulo={t("Últimos registros")}>
-        {eventosT.length === 0 ? (
-          <Vacio icono="vacio">{t("Todavía no has registrado nada.")}</Vacio>
-        ) : (
-          <div className="tarjeta py-1">
-            {eventosT.map((e) => (
-              <EventoLinea key={e.id} evento={e} mostrarCliente compacto />
-            ))}
-          </div>
-        )}
-      </Seccion>
+          {silencio.length > 0 && (
+            <Seccion titulo={t("Clientes sin novedad")} contador={silencio.length}>
+              <ul className="tarjeta divide-y" style={{ borderColor: "var(--borde)" }}>
+                {silencio.map((c) => (
+                  <li key={c.id} style={{ borderColor: "var(--borde)" }}>
+                    <Link
+                      href={`/clientes/${c.id}/timeline`}
+                      className="flex items-center justify-between gap-3 px-3.5 py-2 hover:bg-[var(--superficie-2)]"
+                    >
+                      <span className="text-sm truncate">{c.nombre}</span>
+                      <span
+                        className="num text-xs shrink-0"
+                        style={{ color: "var(--texto-3)" }}
+                      >
+                        {c.ultimo_evento ? textoRelativo(c.ultimo_evento) : t("sin registros")}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </Seccion>
+          )}
+        </div>
+      </div>
+
+      <details className="mt-2">
+        <summary
+          className="text-xs cursor-pointer select-none inline-flex items-center gap-1.5"
+          style={{ color: "var(--texto-3)" }}
+        >
+          <Icono nombre="hilo" tam={12} />
+          {t("Últimos registros")}
+        </summary>
+        <div className="tarjeta py-1 mt-2">
+          {eventosT.map((e) => (
+            <EventoLinea key={e.id} evento={e} mostrarCliente compacto />
+          ))}
+        </div>
+      </details>
     </>
   );
 }

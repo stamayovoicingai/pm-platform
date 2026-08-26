@@ -312,6 +312,20 @@ export const EN: Record<string, string> = {
   "Sin métricas registradas. Se capturan en la pantalla de Métricas.":
     "No metrics logged. They are captured on the Metrics screen.",
 
+  // Avisos
+  Registrado: "Logged",
+  "Día guardado": "Day saved",
+  "Hito añadido": "Milestone added",
+  "Compromiso añadido": "Commitment added",
+  "Contacto añadido": "Contact added",
+  "Mes guardado": "Month saved",
+  "Objetivo guardado": "Target saved",
+
+  // Hoy
+  "Hitos en 7 días": "Milestones in 7 days",
+  "Compromisos vencidos": "Overdue commitments",
+  "sin registros": "no entries",
+
   // Preferencias
   Tema: "Theme",
   Idioma: "Language",

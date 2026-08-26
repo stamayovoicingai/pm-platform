@@ -33,7 +33,7 @@ export default async function HitosCliente({ params }: { params: Promise<{ id: s
           descripcion={t("Una fecha comprometida del proyecto.")}
           variante="principal"
         >
-          <FormularioModal accion={crearHito}>
+          <FormularioModal accion={crearHito} confirmacion={t("Hito añadido")}>
           <input type="hidden" name="cliente_id" value={id} />
           <div className="grid sm:grid-cols-[1fr_11rem_9rem] gap-3">
             <div>
