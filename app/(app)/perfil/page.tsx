@@ -18,6 +18,13 @@ export default async function Perfil() {
       </p>
 
       <div className="space-y-4">
+        <a
+          href="/diagnostico"
+          className="boton-suave inline-flex"
+          style={{ textDecoration: "none" }}
+        >
+          {t("Diagnóstico de integraciones")}
+        </a>
         <Preferencias />
         <FormularioPassword />
       </div>

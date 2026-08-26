@@ -1,0 +1,169 @@
+import "server-only";
+import { pedirJson, proveedorActivo } from "../llm";
+
+export type Comprobacion = {
+  nombre: string;
+  estado: "ok" | "fallo" | "aviso" | "sin_probar";
+  detalle: string;
+};
+
+async function llamarConCabeceras(metodo: string, cuerpo: unknown) {
+  const respuesta = await fetch(`https://slack.com/api/${metodo}`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json; charset=utf-8",
+      authorization: `Bearer ${process.env.SLACK_BOT_TOKEN}`,
+    },
+    body: JSON.stringify(cuerpo),
+  });
+
+  return {
+    datos: (await respuesta.json()) as Record<string, unknown>,
+    // Slack devuelve en esta cabecera los permisos realmente concedidos, que no
+    // siempre coinciden con los que pide el manifiesto: añadir un scope no lo
+    // concede hasta reinstalar la app.
+    scopes: (respuesta.headers.get("x-oauth-scopes") ?? "").split(",").filter(Boolean),
+  };
+}
+
+const SCOPES_NECESARIOS = ["chat:write"];
+
+export async function diagnosticarSlack(): Promise<Comprobacion[]> {
+  const salida: Comprobacion[] = [];
+  const canal = process.env.SLACK_CANAL;
+
+  if (!process.env.SLACK_BOT_TOKEN) {
+    return [
+      { nombre: "Bot token", estado: "fallo", detalle: "Falta SLACK_BOT_TOKEN" },
+    ];
+  }
+
+  let scopes: string[] = [];
+
+  try {
+    const { datos, scopes: concedidos } = await llamarConCabeceras("auth.test", {});
+    scopes = concedidos;
+
+    if (datos.ok) {
+      salida.push({
+        nombre: "Token",
+        estado: "ok",
+        detalle: `Válido · workspace ${datos.team} · bot ${datos.user} (${datos.user_id})`,
+      });
+    } else {
+      salida.push({
+        nombre: "Token",
+        estado: "fallo",
+        detalle: `Slack lo rechaza: ${datos.error}`,
+      });
+      return salida;
+    }
+  } catch (error) {
+    salida.push({
+      nombre: "Token",
+      estado: "fallo",
+      detalle: error instanceof Error ? error.message : "No se pudo llamar a Slack",
+    });
+    return salida;
+  }
+
+  const historial = scopes.filter((s) => s.endsWith(":history"));
+  salida.push({
+    nombre: "Permisos concedidos",
+    estado:
+      SCOPES_NECESARIOS.every((s) => scopes.includes(s)) && historial.length > 0
+        ? "ok"
+        : "fallo",
+    detalle:
+      scopes.join(", ") +
+      (historial.length === 0
+        ? " — falta un scope :history. Añádelo y REINSTALA la app: los scopes nuevos no se conceden a una instalación existente."
+        : ""),
+  });
+
+  if (!canal) {
+    salida.push({ nombre: "Canal", estado: "fallo", detalle: "Falta SLACK_CANAL" });
+    return salida;
+  }
+
+  try {
+    const { datos } = await llamarConCabeceras("conversations.info", { channel: canal });
+    const info = datos.channel as Record<string, unknown> | undefined;
+
+    if (!datos.ok) {
+      salida.push({
+        nombre: "Canal",
+        estado: "fallo",
+        detalle:
+          `Slack responde ${datos.error}` +
+          (datos.error === "channel_not_found"
+            ? ". El ID no existe o el bot no puede verlo — si el canal es privado, hacen falta los scopes de grupos."
+            : ""),
+      });
+    } else {
+      const esPrivado = info?.is_private === true;
+      const esMiembro = info?.is_member === true;
+
+      salida.push({
+        nombre: "Canal",
+        estado: esMiembro ? "ok" : "fallo",
+        detalle:
+          `#${info?.name}${esPrivado ? " (privado)" : ""} · ` +
+          (esMiembro
+            ? "el bot está dentro"
+            : "EL BOT NO ESTÁ EN EL CANAL. Escribe /invite @PM Platform"),
+      });
+
+      if (esPrivado && !scopes.includes("groups:history")) {
+        salida.push({
+          nombre: "Canal privado",
+          estado: "fallo",
+          detalle:
+            "El canal es privado pero falta groups:history. Con canal privado hacen falta " +
+            "groups:history y el evento message.groups en lugar de los de canales públicos.",
+        });
+      }
+      if (!esPrivado && !scopes.includes("channels:history")) {
+        salida.push({
+          nombre: "Lectura del canal",
+          estado: "fallo",
+          detalle: "Falta channels:history. Sin él, Slack no envía los mensajes del canal.",
+        });
+      }
+    }
+  } catch (error) {
+    salida.push({
+      nombre: "Canal",
+      estado: "fallo",
+      detalle: error instanceof Error ? error.message : "Error consultando el canal",
+    });
+  }
+
+  return salida;
+}
+
+/** Llamada real al modelo, para separar "no llega" de "llega y falla al clasificar". */
+export async function diagnosticarIA(): Promise<Comprobacion> {
+  if (proveedorActivo() === "ninguno") {
+    return { nombre: "IA", estado: "aviso", detalle: "Sin proveedor configurado" };
+  }
+
+  try {
+    const respuesta = await pedirJson(
+      'Devuelves exclusivamente un array JSON de strings.',
+      'Traduce al inglés: ["prueba de conexión"]',
+      200,
+    );
+    return {
+      nombre: `IA (${proveedorActivo()})`,
+      estado: "ok",
+      detalle: `Responde: ${respuesta.slice(0, 120)}`,
+    };
+  } catch (error) {
+    return {
+      nombre: `IA (${proveedorActivo()})`,
+      estado: "fallo",
+      detalle: error instanceof Error ? error.message.slice(0, 400) : "Error",
+    };
+  }
+}

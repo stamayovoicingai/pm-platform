@@ -209,6 +209,15 @@ export const EN: Record<string, string> = {
     "Moves to open items until you close it",
   "Veces que se ha movido la fecha": "Times the date has moved",
 
+  // Diagnóstico
+  "Diagnóstico": "Diagnostics",
+  "Comprobaciones en vivo contra Slack y el modelo.":
+    "Live checks against Slack and the model.",
+  Modelo: "Model",
+  "Diagnóstico de integraciones": "Integrations diagnostics",
+  "Últimos avisos enviados": "Last notifications sent",
+  "Todavía ninguno.": "None yet.",
+
   // Preferencias
   Tema: "Theme",
   Idioma: "Language",
