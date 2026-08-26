@@ -32,6 +32,7 @@ export async function POST(peticion: Request) {
       peticion.headers.get("x-slack-request-timestamp"),
     )
   ) {
+    console.warn("Slack: interactividad rechazada por firma inválida.");
     return new Response("Firma inválida", { status: 401 });
   }
 

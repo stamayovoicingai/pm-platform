@@ -1,5 +1,6 @@
 import { firmaValida, publicar, type Bloque } from "@/lib/slack/cliente";
 import { clasificar } from "@/lib/slack/clasificar";
+import { proveedorActivo } from "@/lib/llm";
 import { sql, uno } from "@/lib/db";
 import { hoy, fechaCorta } from "@/lib/fechas";
 import { ETIQUETA_EVENTO, ETIQUETA_SEVERIDAD, type TipoEvento, type Severidad } from "@/lib/dominio";
@@ -31,6 +32,12 @@ export async function POST(peticion: Request) {
       peticion.headers.get("x-slack-request-timestamp"),
     )
   ) {
+    console.warn(
+      "Slack: petición rechazada por firma inválida.",
+      process.env.SLACK_SIGNING_SECRET
+        ? "Comprueba que el Signing Secret sea el de Basic Information."
+        : "No hay SLACK_SIGNING_SECRET configurado.",
+    );
     return new Response("Firma inválida", { status: 401 });
   }
 
@@ -52,7 +59,12 @@ export async function POST(peticion: Request) {
   // Se responde ya y el trabajo sigue: el servidor es un proceso vivo, no una
   // función que muere al devolver.
   if (esMensajeDePersona) {
+    console.log(`Slack: mensaje recibido en ${evento!.channel}, clasificando…`);
     void procesar(evento!.text!, evento!.channel!, evento!.ts!, evento!.user);
+  } else if (evento) {
+    console.log(
+      `Slack: evento ${evento.type}${evento.subtype ? `/${evento.subtype}` : ""} ignorado`,
+    );
   }
 
   return new Response("", { status: 200 });
@@ -126,9 +138,21 @@ async function procesar(texto: string, canal: string, ts: string, usuario?: stri
   }
 }
 
+/** Diagnóstico. No devuelve ningún secreto, solo si están puestos. */
 export async function GET() {
   const [{ n }] = await sql<{ n: string }>(
     "select count(*)::text as n from propuesta_slack where estado = 'pendiente'",
   );
-  return Response.json({ ok: true, propuestas_pendientes: Number(n) });
+
+  return Response.json({
+    ok: true,
+    configurado: {
+      bot_token: Boolean(process.env.SLACK_BOT_TOKEN),
+      signing_secret: Boolean(process.env.SLACK_SIGNING_SECRET),
+      canal: process.env.SLACK_CANAL ?? null,
+      app_url: process.env.APP_URL ?? null,
+    },
+    ia: proveedorActivo(),
+    propuestas_pendientes: Number(n),
+  });
 }

@@ -6,6 +6,14 @@ import type { Idioma } from "./preferencias";
 
 const LIMITE_POR_LOTE = 60;
 
+/**
+ * Cortacircuitos. Sin esto, un modelo mal configurado dispara una llamada
+ * fallida por cada texto de cada página, llenando los logs y gastando cuota
+ * para nada. Tras un fallo se deja de intentar durante un minuto.
+ */
+let pausaHasta = 0;
+const PAUSA_MS = 60_000;
+
 function hash(texto: string) {
   return createHash("sha256").update(texto).digest("hex").slice(0, 32);
 }
@@ -42,6 +50,7 @@ export async function traducir(
   if (faltantes.length === 0) return salida;
 
   if (proveedorActivo() === "ninguno") return salida;
+  if (Date.now() < pausaHasta) return salida;
 
   try {
     for (let i = 0; i < faltantes.length; i += LIMITE_POR_LOTE) {
@@ -66,7 +75,11 @@ export async function traducir(
       );
     }
   } catch (error) {
-    console.error("Traducción fallida, se muestra el original:", error);
+    pausaHasta = Date.now() + PAUSA_MS;
+    console.error(
+      "Traducción fallida, se muestra el original y se pausa un minuto:",
+      error instanceof Error ? error.message : error,
+    );
   }
 
   return salida;

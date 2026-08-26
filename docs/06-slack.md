@@ -70,3 +70,35 @@ segundo plano, que es posible porque el servidor es un proceso vivo.
 
 **La firma se comprueba siempre**, con ventana de cinco minutos. Sin esa ventana, una
 petición interceptada valdría para siempre.
+
+## Si el bot no responde
+
+Lo primero, el diagnóstico. Abre en el navegador, con sesión iniciada:
+
+```
+https://n8n-pm-app.hr3und.easypanel.host/api/slack/eventos
+```
+
+Devuelve qué variables están puestas (sin revelarlas), el canal, y qué proveedor de IA
+está activo. Si algo sale en `false` o `null`, ahí está el problema.
+
+Si todo está puesto y aun así no responde, en los logs del contenedor:
+
+| Lo que ves | Qué significa |
+|---|---|
+| `Slack: mensaje recibido …` | Llega bien; el fallo está más adelante |
+| `Slack: petición rechazada por firma inválida` | El Signing Secret no es el correcto |
+| `Clasificación fallida:` | El modelo devolvió error — mira el motivo |
+| Nada en absoluto | Slack no está llamando al endpoint |
+
+Cuando no aparece nada, el problema está del lado de Slack y suele ser una de estas
+cuatro, por orden de frecuencia:
+
+1. **Event Subscriptions sin verificar.** En la app de Slack, esa sección debe mostrar
+   *Verified* en verde junto a la Request URL. Si la app se creó antes de desplegar, la
+   verificación falló y quedó desactivada. Pulsa *Retry* o vuelve a guardar la URL.
+2. **El bot no está en el canal.** Escribe `/invite @PM Platform` en el canal.
+3. **Falta el scope `channels:history`**, o se añadió después de instalar. Cualquier
+   cambio de scopes exige reinstalar la app en el workspace.
+4. **El canal es privado.** Entonces hacen falta `groups:history` y el evento
+   `message.groups` en lugar de los de canales públicos.

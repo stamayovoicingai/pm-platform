@@ -14,7 +14,7 @@ export function proveedorActivo(): Proveedor {
   return "ninguno";
 }
 
-const MODELO_GEMINI = process.env.GEMINI_MODELO ?? "gemini-2.5-flash";
+const MODELO_GEMINI = process.env.GEMINI_MODELO ?? "gemini-3.6-flash";
 const MODELO_CLAUDE = process.env.ANTHROPIC_MODELO ?? "claude-opus-5";
 
 /**
