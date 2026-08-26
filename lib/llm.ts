@@ -17,6 +17,11 @@ export function proveedorActivo(): Proveedor {
 const MODELO_GEMINI = process.env.GEMINI_MODELO ?? "gemini-3.6-flash";
 const MODELO_CLAUDE = process.env.ANTHROPIC_MODELO ?? "claude-opus-5";
 
+/** El modelo que se usaría ahora mismo, para poder verlo en el diagnóstico. */
+export function modeloEnUso(): string {
+  return proveedorActivo() === "gemini" ? MODELO_GEMINI : MODELO_CLAUDE;
+}
+
 /**
  * Pide al modelo una respuesta en JSON. Devuelve el texto crudo; interpretarlo
  * es cosa de quien llama, que es quien sabe qué forma espera.

@@ -1,5 +1,5 @@
 import "server-only";
-import { pedirJson, proveedorActivo } from "../llm";
+import { pedirJson, proveedorActivo, modeloEnUso } from "../llm";
 
 export type Comprobacion = {
   nombre: string;
@@ -86,58 +86,55 @@ export async function diagnosticarSlack(): Promise<Comprobacion[]> {
     return salida;
   }
 
+  // Se usa conversations.history y no conversations.info a propósito: info exige
+  // channels:read, que no hace falta para nada más. history usa channels:history,
+  // que es justo el permiso del que depende recibir los mensajes — si funciona,
+  // el bot puede leer el canal y está dentro.
   try {
-    const { datos } = await llamarConCabeceras("conversations.info", { channel: canal });
-    const info = datos.channel as Record<string, unknown> | undefined;
+    const { datos } = await llamarConCabeceras("conversations.history", {
+      channel: canal,
+      limit: 1,
+    });
 
-    if (!datos.ok) {
+    if (datos.ok) {
       salida.push({
-        nombre: "Canal",
-        estado: "fallo",
+        nombre: "Lectura del canal",
+        estado: "ok",
         detalle:
-          `Slack responde ${datos.error}` +
-          (datos.error === "channel_not_found"
-            ? ". El ID no existe o el bot no puede verlo — si el canal es privado, hacen falta los scopes de grupos."
-            : ""),
+          "El bot puede leer el canal: está dentro y tiene el permiso. " +
+          "Si aun así no recibes mensajes, el fallo está en Event Subscriptions.",
       });
     } else {
-      const esPrivado = info?.is_private === true;
-      const esMiembro = info?.is_member === true;
-
+      const error = String(datos.error);
+      const explicacion: Record<string, string> = {
+        not_in_channel: "El bot no está en el canal. Escribe /invite @PM Platform",
+        channel_not_found:
+          "El ID no existe o el canal es privado y el bot no está invitado. " +
+          "Con canal privado hacen falta groups:history y el evento message.groups.",
+        missing_scope: "Falta channels:history. Añádelo y REINSTALA la app.",
+      };
       salida.push({
-        nombre: "Canal",
-        estado: esMiembro ? "ok" : "fallo",
-        detalle:
-          `#${info?.name}${esPrivado ? " (privado)" : ""} · ` +
-          (esMiembro
-            ? "el bot está dentro"
-            : "EL BOT NO ESTÁ EN EL CANAL. Escribe /invite @PM Platform"),
+        nombre: "Lectura del canal",
+        estado: "fallo",
+        detalle: `Slack responde ${error}. ${explicacion[error] ?? ""}`,
       });
-
-      if (esPrivado && !scopes.includes("groups:history")) {
-        salida.push({
-          nombre: "Canal privado",
-          estado: "fallo",
-          detalle:
-            "El canal es privado pero falta groups:history. Con canal privado hacen falta " +
-            "groups:history y el evento message.groups en lugar de los de canales públicos.",
-        });
-      }
-      if (!esPrivado && !scopes.includes("channels:history")) {
-        salida.push({
-          nombre: "Lectura del canal",
-          estado: "fallo",
-          detalle: "Falta channels:history. Sin él, Slack no envía los mensajes del canal.",
-        });
-      }
     }
   } catch (error) {
     salida.push({
-      nombre: "Canal",
+      nombre: "Lectura del canal",
       estado: "fallo",
       detalle: error instanceof Error ? error.message : "Error consultando el canal",
     });
   }
+
+  salida.push({
+    nombre: "Event Subscriptions",
+    estado: "sin_probar",
+    detalle:
+      "Esto no se puede comprobar desde aquí. En api.slack.com → Event Subscriptions: " +
+      "la URL debe decir Verified, la sección 'Subscribe to bot events' debe contener " +
+      "message.channels, y hay que pulsar Save Changes abajo del todo.",
+  });
 
   return salida;
 }
@@ -157,13 +154,15 @@ export async function diagnosticarIA(): Promise<Comprobacion> {
     return {
       nombre: `IA (${proveedorActivo()})`,
       estado: "ok",
-      detalle: `Responde: ${respuesta.slice(0, 120)}`,
+      detalle: `Modelo ${modeloEnUso()} · responde: ${respuesta.slice(0, 100)}`,
     };
   } catch (error) {
     return {
       nombre: `IA (${proveedorActivo()})`,
       estado: "fallo",
-      detalle: error instanceof Error ? error.message.slice(0, 400) : "Error",
+      detalle:
+        `Modelo ${modeloEnUso()} · ` +
+        (error instanceof Error ? error.message.slice(0, 400) : "Error"),
     };
   }
 }
