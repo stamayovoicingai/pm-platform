@@ -19,6 +19,9 @@ import {
 } from "@/lib/dominio";
 import { fechaCorta, textoRelativo, diasHasta } from "@/lib/fechas";
 
+import { crearTraductor } from "@/lib/i18n";
+import { leerIdioma } from "@/lib/preferencias";
+import { traducirFilas, traducirAgrupado } from "@/lib/traduccion";
 export const dynamic = "force-dynamic";
 
 function colorPorUrgencia(dias: number | null) {
@@ -29,6 +32,7 @@ function colorPorUrgencia(dias: number | null) {
 }
 
 export default async function Hoy() {
+  const t = crearTraductor(await leerIdioma());
   const [hitos, compromisos, silencio, eventos, abiertos] = await Promise.all([
     hitosProximos(30),
     compromisosAbiertos(7),
@@ -43,6 +47,15 @@ export default async function Hoy() {
     adjuntosDe(idsAbiertos),
   ]);
 
+  const idioma = await leerIdioma();
+  const [abiertosT, hitosT, compromisosT, eventosT, actualizacionesT] = await Promise.all([
+    traducirFilas(idioma, abiertos, ["titulo", "cuerpo"]),
+    traducirFilas(idioma, hitos, ["titulo", "notas"]),
+    traducirFilas(idioma, compromisos, ["descripcion"]),
+    traducirFilas(idioma, eventos, ["titulo", "cuerpo"]),
+    traducirAgrupado(idioma, actualizaciones, ["cuerpo"]),
+  ]);
+
   const vencidos = compromisos.filter(
     (c) => c.fecha_limite && (diasHasta(c.fecha_limite) ?? 0) < 0,
   );
@@ -50,7 +63,7 @@ export default async function Hoy() {
   return (
     <>
       <div className="mb-6">
-        <h1 className="text-xl font-semibold tracking-tight">Hoy</h1>
+        <h1 className="text-xl font-semibold tracking-tight">{t("Hoy")}</h1>
         <p className="text-sm mt-1" style={{ color: "var(--texto-2)" }}>
           {hitos.length} hito{hitos.length === 1 ? "" : "s"} en 30 días ·{" "}
           {vencidos.length} compromiso{vencidos.length === 1 ? "" : "s"} vencido
@@ -64,11 +77,11 @@ export default async function Hoy() {
           <Vacio>Nada abierto. Ninguna incidencia, bloqueo ni riesgo sin cerrar.</Vacio>
         ) : (
           <div className="tarjeta divide-y" style={{ borderColor: "var(--borde)" }}>
-            {abiertos.map((e) => (
+            {abiertosT.map((e) => (
               <EventoLinea
                 key={e.id}
                 evento={e}
-                actualizaciones={actualizaciones[e.id] ?? []}
+                actualizaciones={actualizacionesT[e.id] ?? []}
                 adjuntos={adjuntos[e.id] ?? []}
                 mostrarCliente
               />
@@ -79,10 +92,10 @@ export default async function Hoy() {
 
       <Seccion titulo="Hitos próximos" contador={hitos.length}>
         {hitos.length === 0 ? (
-          <Vacio>Sin hitos en los próximos 30 días.</Vacio>
+          <Vacio>{t("Sin hitos en los próximos 30 días.")}</Vacio>
         ) : (
           <div className="tarjeta divide-y" style={{ borderColor: "var(--borde)" }}>
-            {hitos.map((h) => {
+            {hitosT.map((h) => {
               const dias = diasHasta(h.fecha_objetivo);
               const color = colorPorUrgencia(dias);
               return (
@@ -95,7 +108,7 @@ export default async function Hoy() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-medium text-sm truncate">{h.titulo}</span>
-                      <Pastilla>{ETIQUETA_HITO[h.tipo]}</Pastilla>
+                      <Pastilla>{t(ETIQUETA_HITO[h.tipo])}</Pastilla>
                       {h.veces_movido > 0 && (
                         <Pastilla
                           fondo="var(--oportunidad-suave)"
@@ -125,10 +138,10 @@ export default async function Hoy() {
 
       <Seccion titulo="Compromisos abiertos" contador={compromisos.length}>
         {compromisos.length === 0 ? (
-          <Vacio>Nada pendiente esta semana.</Vacio>
+          <Vacio>{t("Nada pendiente esta semana.")}</Vacio>
         ) : (
           <div className="tarjeta divide-y" style={{ borderColor: "var(--borde)" }}>
-            {compromisos.map((c) => {
+            {compromisosT.map((c) => {
               const dias = diasHasta(c.fecha_limite);
               const color = colorPorUrgencia(dias);
               return (
@@ -141,7 +154,7 @@ export default async function Hoy() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-sm">{c.descripcion}</span>
-                      <Pastilla>{ETIQUETA_LADO[c.lado]}</Pastilla>
+                      <Pastilla>{t(ETIQUETA_LADO[c.lado])}</Pastilla>
                     </div>
                     <p className="text-xs mt-0.5" style={{ color: "var(--texto-3)" }}>
                       {c.cliente_nombre}
@@ -160,7 +173,7 @@ export default async function Hoy() {
 
       <Seccion titulo="Clientes sin novedad" contador={silencio.length}>
         {silencio.length === 0 ? (
-          <Vacio>Todos los clientes tienen registro reciente.</Vacio>
+          <Vacio>{t("Todos los clientes tienen registro reciente.")}</Vacio>
         ) : (
           <div className="tarjeta divide-y" style={{ borderColor: "var(--borde)" }}>
             {silencio.map((c) => (
@@ -184,10 +197,10 @@ export default async function Hoy() {
 
       <Seccion titulo="Últimos registros">
         {eventos.length === 0 ? (
-          <Vacio>Todavía no has registrado nada.</Vacio>
+          <Vacio>{t("Todavía no has registrado nada.")}</Vacio>
         ) : (
           <div className="tarjeta divide-y" style={{ borderColor: "var(--borde)" }}>
-            {eventos.map((e) => {
+            {eventosT.map((e) => {
               const color = colorEvento(e.tipo);
               return (
                 <Link
@@ -205,7 +218,7 @@ export default async function Hoy() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <Pastilla fondo={color.fondo} texto={color.texto}>
-                        {ETIQUETA_EVENTO[e.tipo]}
+                        {t(ETIQUETA_EVENTO[e.tipo])}
                       </Pastilla>
                       <span className="text-sm">{e.titulo}</span>
                     </div>

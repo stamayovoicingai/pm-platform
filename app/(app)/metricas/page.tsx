@@ -4,6 +4,8 @@ import CapturaMetricas from "@/components/CapturaMetricas";
 import { Seccion, Vacio } from "@/components/Seccion";
 import { hoy, fechaLarga, fechaCorta, textoRelativo } from "@/lib/fechas";
 
+import { crearTraductor } from "@/lib/i18n";
+import { leerIdioma } from "@/lib/preferencias";
 export const dynamic = "force-dynamic";
 
 function desplazar(fecha: string, dias: number) {
@@ -17,6 +19,7 @@ export default async function Metricas({
 }: {
   searchParams: Promise<{ fecha?: string }>;
 }) {
+  const t = crearTraductor(await leerIdioma());
   const { fecha: pedida } = await searchParams;
   const fecha = /^\d{4}-\d{2}-\d{2}$/.test(pedida ?? "") ? pedida! : hoy();
 
@@ -30,7 +33,7 @@ export default async function Metricas({
   return (
     <>
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Métricas</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{t("Métricas")}</h1>
         <p className="text-sm mt-1" style={{ color: "var(--texto-2)" }}>
           {fechaLarga(fecha)}
           {!esHoy && ` · ${textoRelativo(fecha)}`}
@@ -43,12 +46,8 @@ export default async function Metricas({
         </Link>
         {!esHoy && (
           <>
-            <Link href={`/metricas?fecha=${desplazar(fecha, 1)}`} className="boton-suave">
-              Día siguiente →
-            </Link>
-            <Link href="/metricas" className="text-sm" style={{ color: "var(--texto-2)" }}>
-              Ir a hoy
-            </Link>
+            <Link href={`/metricas?fecha=${desplazar(fecha, 1)}`} className="boton-suave">{t("Día siguiente →")}</Link>
+            <Link href="/metricas" className="text-sm" style={{ color: "var(--texto-2)" }}>{t("Ir a hoy")}</Link>
           </>
         )}
       </div>

@@ -6,6 +6,9 @@ import { Vacio } from "@/components/Seccion";
 import { LADOS, ETIQUETA_LADO } from "@/lib/dominio";
 import { textoRelativo, diasHasta } from "@/lib/fechas";
 
+import { crearTraductor } from "@/lib/i18n";
+import { leerIdioma } from "@/lib/preferencias";
+import { traducirFilas } from "@/lib/traduccion";
 export const dynamic = "force-dynamic";
 
 export default async function CompromisosCliente({
@@ -13,11 +16,13 @@ export default async function CompromisosCliente({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const t = crearTraductor(await leerIdioma());
   const { id } = await params;
-  const [compromisos, contactos] = await Promise.all([
+  const [originales, contactos] = await Promise.all([
     compromisosCliente(id),
     contactosCliente(id),
   ]);
+  const compromisos = await traducirFilas(await leerIdioma(), originales, ["descripcion"]);
 
   const abiertos = compromisos.filter((c) => c.estado === "pendiente");
   const cerrados = compromisos.filter((c) => c.estado !== "pendiente");
@@ -28,35 +33,33 @@ export default async function CompromisosCliente({
         <summary
           className="px-4 py-2.5 text-sm cursor-pointer select-none"
           style={{ color: "var(--texto-2)" }}
-        >
-          Añadir compromiso
-        </summary>
+        >{t("Añadir compromiso")}</summary>
         <form action={crearCompromiso} className="px-4 pb-4 pt-1 space-y-3">
           <input type="hidden" name="cliente_id" value={id} />
           <div>
-            <label className="etiqueta">Qué se comprometió</label>
+            <label className="etiqueta">{t("Qué se comprometió")}</label>
             <input
               name="descripcion"
               required
               className="campo"
-              placeholder="Enviar el postmortem del incidente"
+              placeholder={t("Enviar el postmortem del incidente")}
             />
           </div>
           <div className="grid sm:grid-cols-3 gap-3">
             <div>
-              <label className="etiqueta">Lado</label>
+              <label className="etiqueta">{t("Lado")}</label>
               <select name="lado" className="campo" defaultValue="interno">
                 {LADOS.map((l) => (
                   <option key={l} value={l}>
-                    {ETIQUETA_LADO[l]}
+                    {t(ETIQUETA_LADO[l])}
                   </option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="etiqueta">Responsable</label>
+              <label className="etiqueta">{t("Responsable")}</label>
               <select name="responsable_id" className="campo" defaultValue="">
-                <option value="">Sin asignar</option>
+                <option value="">{t("Sin asignar")}</option>
                 {contactos.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.nombre}
@@ -65,18 +68,16 @@ export default async function CompromisosCliente({
               </select>
             </div>
             <div>
-              <label className="etiqueta">Fecha límite</label>
+              <label className="etiqueta">{t("Fecha límite")}</label>
               <input type="date" name="fecha_limite" className="campo" />
             </div>
           </div>
-          <button type="submit" className="boton">
-            Añadir compromiso
-          </button>
+          <button type="submit" className="boton">{t("Añadir compromiso")}</button>
         </form>
       </details>
 
       {abiertos.length === 0 ? (
-        <Vacio>Sin compromisos abiertos.</Vacio>
+        <Vacio>{t("Sin compromisos abiertos.")}</Vacio>
       ) : (
         <div className="tarjeta divide-y" style={{ borderColor: "var(--borde)" }}>
           {abiertos.map((c) => {
@@ -91,11 +92,9 @@ export default async function CompromisosCliente({
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-sm">{c.descripcion}</span>
-                    <Pastilla>{ETIQUETA_LADO[c.lado]}</Pastilla>
+                    <Pastilla>{t(ETIQUETA_LADO[c.lado])}</Pastilla>
                     {vencido && (
-                      <Pastilla fondo="var(--riesgo-suave)" texto="var(--riesgo)">
-                        vencido
-                      </Pastilla>
+                      <Pastilla fondo="var(--riesgo-suave)" texto="var(--riesgo)">{t("vencido")}</Pastilla>
                     )}
                   </div>
                   <p className="text-xs mt-0.5" style={{ color: "var(--texto-3)" }}>
@@ -107,9 +106,7 @@ export default async function CompromisosCliente({
                   <input type="hidden" name="id" value={c.id} />
                   <input type="hidden" name="cliente_id" value={id} />
                   <input type="hidden" name="estado" value="cumplido" />
-                  <button type="submit" className="boton-suave text-xs">
-                    Cumplido
-                  </button>
+                  <button type="submit" className="boton-suave text-xs">{t("Cumplido")}</button>
                 </form>
               </div>
             );

@@ -129,6 +129,24 @@ año sin registrarlo.
 **Cambiar la fase cuando cambie de verdad.** Se registra sola como evento. Cuando estén
 las curvas de volumen, el paso a producción aparecerá marcado encima de la gráfica.
 
+## Tema e idioma
+
+En **Cuenta** eliges tema —claro, oscuro o según el sistema— e idioma entre español e
+inglés. Las dos preferencias se guardan en cookie y las lee el servidor al renderizar, así
+que no hay parpadeo al cargar.
+
+En inglés se traduce tanto la interfaz como **lo que tú escribes**: títulos y detalles de
+eventos, actualizaciones, notas de hitos y descripciones de compromisos. La traducción la
+hace un modelo la primera vez y queda guardada, de modo que solo se paga una vez por
+texto; si editas el texto, se retraduce.
+
+Los nombres de cliente no se traducen, porque son nombres propios. Y los formularios de
+edición muestran siempre tu texto original: si mostraran la traducción, guardar
+sobreescribiría lo que escribiste con su versión en inglés.
+
+Si no hay proveedor de IA configurado, el inglés se aplica solo a la interfaz y tu
+contenido se ve tal como lo escribiste.
+
 ## Pantallas
 
 - **Hoy** — la de la mañana.

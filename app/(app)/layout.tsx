@@ -2,14 +2,19 @@ import { redirect } from "next/navigation";
 import { sesionActual, cerrarSesion } from "@/lib/auth";
 import { clientesSidebar } from "@/lib/consultas/clientes";
 import Shell from "@/components/Shell";
+import { ProveedorIdioma } from "@/components/Idioma";
 
+import { crearTraductor } from "@/lib/i18n";
+import { leerIdioma } from "@/lib/preferencias";
 export const dynamic = "force-dynamic";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
+  const t = crearTraductor(await leerIdioma());
   const sesion = await sesionActual();
   if (!sesion) redirect("/login");
 
   const clientes = await clientesSidebar();
+  const idioma = await leerIdioma();
 
   async function salir() {
     "use server";
@@ -18,18 +23,18 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
   return (
+    <ProveedorIdioma idioma={idioma}>
     <Shell
       clientes={clientes}
       usuario={sesion.nombre}
       salir={
         <form action={salir}>
-          <button type="submit" className="text-xs" style={{ color: "var(--texto-3)" }}>
-            Salir
-          </button>
+          <button type="submit" className="text-xs" style={{ color: "var(--texto-3)" }}>{t("Salir")}</button>
         </form>
       }
     >
       {children}
     </Shell>
+    </ProveedorIdioma>
   );
 }

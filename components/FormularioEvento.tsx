@@ -13,6 +13,7 @@ import {
   type TipoEvento,
 } from "@/lib/dominio";
 
+import { useT } from "@/components/Idioma";
 /**
  * Registro rápido. Los tipos son botones y no un desplegable a propósito:
  * un clic menos multiplicado por varias entradas al día es lo que hace que
@@ -25,6 +26,7 @@ export default function FormularioEvento({
   clienteId: string;
   hoy: string;
 }) {
+  const t = useT();
   const formulario = useRef<HTMLFormElement>(null);
   const [tipo, setTipo] = useState<TipoEvento>("nota");
   const [seguir, setSeguir] = useState(seguirPorDefecto("nota"));
@@ -55,16 +57,16 @@ export default function FormularioEvento({
       <input type="hidden" name="seguir" value={seguir ? "si" : "no"} />
 
       <div className="flex flex-wrap gap-1.5">
-        {TIPOS_EVENTO_MANUAL.map((t) => {
-          const activo = tipo === t;
-          const color = colorEvento(t);
+        {TIPOS_EVENTO_MANUAL.map((opcion) => {
+          const activo = tipo === opcion;
+          const color = colorEvento(opcion);
           return (
             <button
-              key={t}
+              key={opcion}
               type="button"
               onClick={() => {
-                setTipo(t);
-                setSeguir(seguirPorDefecto(t));
+                setTipo(opcion);
+                setSeguir(seguirPorDefecto(opcion));
               }}
               className="pastilla"
               style={{
@@ -73,7 +75,7 @@ export default function FormularioEvento({
                 border: `1px solid ${activo ? "transparent" : "var(--borde)"}`,
               }}
             >
-              {ETIQUETA_EVENTO[t]}
+              {t(ETIQUETA_EVENTO[opcion])}
             </button>
           );
         })}
@@ -83,11 +85,11 @@ export default function FormularioEvento({
         name="titulo"
         required
         className="campo"
-        placeholder="Qué pasó"
+        placeholder={t("Qué pasó")}
         autoComplete="off"
       />
 
-      <textarea name="cuerpo" rows={2} className="campo" placeholder="Detalle (opcional)" />
+      <textarea name="cuerpo" rows={2} className="campo" placeholder={t("Detalle (opcional)")} />
 
       <div>
         <label className="etiqueta" htmlFor="archivos">
@@ -111,15 +113,15 @@ export default function FormularioEvento({
 
       <div className="flex flex-wrap items-end gap-3">
         <div className="w-40">
-          <label className="etiqueta">Fecha</label>
+          <label className="etiqueta">{t("Fecha")}</label>
           <input type="date" name="fecha_evento" defaultValue={hoy} className="campo" />
         </div>
         <div className="w-32">
-          <label className="etiqueta">Severidad</label>
+          <label className="etiqueta">{t("Severidad")}</label>
           <select name="severidad" className="campo" defaultValue="info">
             {SEVERIDADES.map((s) => (
               <option key={s} value={s}>
-                {ETIQUETA_SEVERIDAD[s]}
+                {t(ETIQUETA_SEVERIDAD[s])}
               </option>
             ))}
           </select>
@@ -127,15 +129,13 @@ export default function FormularioEvento({
         <label
           className="flex items-center gap-1.5 text-sm cursor-pointer select-none pb-2"
           style={{ color: "var(--texto-2)" }}
-          title="Queda como asunto abierto hasta que lo cierres"
+          title={t("Queda como asunto abierto hasta que lo cierres")}
         >
           <input
             type="checkbox"
             checked={seguir}
             onChange={(e) => setSeguir(e.target.checked)}
-          />
-          Hacer seguimiento
-        </label>
+          />{t("Hacer seguimiento")}</label>
 
         <button type="submit" className="boton ml-auto" disabled={guardando}>
           {guardando ? "Guardando…" : "Registrar"}

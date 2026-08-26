@@ -7,12 +7,20 @@ import { Vacio } from "@/components/Seccion";
 import { ETIQUETA_HITO, ESTADOS_HITO, ETIQUETA_ESTADO_HITO } from "@/lib/dominio";
 import { fechaCorta, textoRelativo, diasHasta } from "@/lib/fechas";
 
+import { crearTraductor } from "@/lib/i18n";
+import { leerIdioma } from "@/lib/preferencias";
+import { traducirFilas } from "@/lib/traduccion";
 export const dynamic = "force-dynamic";
 
 const OPCIONES = ESTADOS_HITO.map((e) => ({ valor: e, etiqueta: ETIQUETA_ESTADO_HITO[e] }));
 
 export default async function Hitos() {
-  const hitos = await todosLosHitos();
+  const t = crearTraductor(await leerIdioma());
+  const hitosOriginales = await todosLosHitos();
+  const hitos = await traducirFilas(await leerIdioma(), hitosOriginales, [
+    "titulo",
+    "notas",
+  ]);
   const abiertos = hitos.filter((h) => h.estado === "pendiente" || h.estado === "en_curso");
   const cerrados = hitos.filter((h) => h.estado !== "pendiente" && h.estado !== "en_curso");
   const movidos = hitos.filter((h) => h.veces_movido > 0);
@@ -24,7 +32,7 @@ export default async function Hitos() {
   return (
     <>
       <div className="mb-5">
-        <h1 className="text-xl font-semibold tracking-tight">Hitos</h1>
+        <h1 className="text-xl font-semibold tracking-tight">{t("Hitos")}</h1>
         <p className="text-sm mt-0.5" style={{ color: "var(--texto-2)" }}>
           {abiertos.length} abiertos
           {movidos.length > 0 &&
@@ -33,7 +41,7 @@ export default async function Hitos() {
       </div>
 
       {abiertos.length === 0 ? (
-        <Vacio>No hay hitos abiertos.</Vacio>
+        <Vacio>{t("No hay hitos abiertos.")}</Vacio>
       ) : (
         <div className="tarjeta divide-y" style={{ borderColor: "var(--borde)" }}>
           {abiertos.map((h) => {
@@ -55,7 +63,7 @@ export default async function Hitos() {
 
                 <span className="text-sm flex-1 min-w-0 truncate">{h.titulo}</span>
 
-                <Pastilla>{ETIQUETA_HITO[h.tipo]}</Pastilla>
+                <Pastilla>{t(ETIQUETA_HITO[h.tipo])}</Pastilla>
 
                 {h.veces_movido > 0 && (
                   <Pastilla fondo="var(--oportunidad-suave)" texto="var(--oportunidad)">

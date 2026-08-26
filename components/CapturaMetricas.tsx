@@ -4,6 +4,7 @@ import { useState } from "react";
 import { guardarMetricasDia } from "@/app/acciones";
 import type { MetricaDia } from "@/lib/consultas/metricas";
 
+import { useT } from "@/components/Idioma";
 type Fila = {
   llamadas: string;
   minutos: string;
@@ -39,6 +40,7 @@ export default function CapturaMetricas({
   fecha: string;
   clientes: MetricaDia[];
 }) {
+  const t = useT();
   const [filas, setFilas] = useState<Record<string, Fila>>(() =>
     Object.fromEntries(clientes.map((c) => [c.cliente_id, inicial(c)])),
   );
@@ -125,9 +127,7 @@ export default function CapturaMetricas({
         <summary
           className="px-4 py-2.5 text-sm cursor-pointer select-none"
           style={{ color: "var(--texto-2)" }}
-        >
-          Pegar bloque
-        </summary>
+        >{t("Pegar bloque")}</summary>
         <div className="px-4 pb-4 pt-1 space-y-2">
           <textarea
             rows={4}
@@ -140,9 +140,7 @@ export default function CapturaMetricas({
             Nombre, llamadas, minutos y contención. Separados por espacios, comas o
             tabuladores — sirve pegar directo desde una hoja de cálculo.
           </p>
-          <button type="button" onClick={interpretar} className="boton-suave">
-            Rellenar campos
-          </button>
+          <button type="button" onClick={interpretar} className="boton-suave">{t("Rellenar campos")}</button>
         </div>
       </details>
 
@@ -167,15 +165,13 @@ export default function CapturaMetricas({
                     onChange={(e) =>
                       cambiar(c.cliente_id, { sinActividad: e.target.checked })
                     }
-                  />
-                  Sin actividad
-                </label>
+                  />{t("Sin actividad")}</label>
               </div>
 
               {!fila.sinActividad && (
                 <div className="grid grid-cols-3 gap-2">
                   <div>
-                    <label className="etiqueta">Llamadas</label>
+                    <label className="etiqueta">{t("Llamadas")}</label>
                     <input
                       name={`llamadas_${c.cliente_id}`}
                       inputMode="numeric"
@@ -185,7 +181,7 @@ export default function CapturaMetricas({
                     />
                   </div>
                   <div>
-                    <label className="etiqueta">Minutos</label>
+                    <label className="etiqueta">{t("Minutos")}</label>
                     <input
                       name={`minutos_${c.cliente_id}`}
                       inputMode="decimal"
@@ -195,7 +191,7 @@ export default function CapturaMetricas({
                     />
                   </div>
                   <div>
-                    <label className="etiqueta">Contención %</label>
+                    <label className="etiqueta">{t("Contención %")}</label>
                     <input
                       name={`contencion_${c.cliente_id}`}
                       inputMode="decimal"
@@ -210,9 +206,7 @@ export default function CapturaMetricas({
               )}
 
               {registrado && (
-                <p className="text-xs mt-1.5" style={{ color: "var(--texto-3)" }}>
-                  Ya había registro para este día. Guardar lo reemplaza.
-                </p>
+                <p className="text-xs mt-1.5" style={{ color: "var(--texto-3)" }}>{t("Ya había registro para este día. Guardar lo reemplaza.")}</p>
               )}
             </div>
           );

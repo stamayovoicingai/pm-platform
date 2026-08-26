@@ -5,9 +5,13 @@ import FormularioEvento from "@/components/FormularioEvento";
 import { Vacio } from "@/components/Seccion";
 import { hoy } from "@/lib/fechas";
 
+import { crearTraductor } from "@/lib/i18n";
+import { leerIdioma } from "@/lib/preferencias";
+import { traducirFilas, traducirAgrupado } from "@/lib/traduccion";
 export const dynamic = "force-dynamic";
 
 export default async function Timeline({ params }: { params: Promise<{ id: string }> }) {
+  const t = crearTraductor(await leerIdioma());
   const { id } = await params;
   const eventos = await timelineCliente(id);
   const ids = eventos.map((e) => e.id);
@@ -16,21 +20,27 @@ export default async function Timeline({ params }: { params: Promise<{ id: strin
     adjuntosDe(ids),
   ]);
 
+  const idioma = await leerIdioma();
+  const eventosTraducidos = await traducirFilas(idioma, eventos, ["titulo", "cuerpo"]);
+  const actualizacionesTraducidas = await traducirAgrupado(idioma, actualizaciones, [
+    "cuerpo",
+  ]);
+
   return (
     <>
       <div className="mb-6">
         <FormularioEvento clienteId={id} hoy={hoy()} />
       </div>
 
-      {eventos.length === 0 ? (
-        <Vacio>Nada registrado todavía para este cliente.</Vacio>
+      {eventosTraducidos.length === 0 ? (
+        <Vacio>{t("Nada registrado todavía para este cliente.")}</Vacio>
       ) : (
         <div className="tarjeta divide-y" style={{ borderColor: "var(--borde)" }}>
-          {eventos.map((e) => (
+          {eventosTraducidos.map((e) => (
             <EventoLinea
               key={e.id}
               evento={e}
-              actualizaciones={actualizaciones[e.id] ?? []}
+              actualizaciones={actualizacionesTraducidas[e.id] ?? []}
               adjuntos={adjuntos[e.id] ?? []}
             />
           ))}

@@ -9,6 +9,8 @@ import {
 } from "@/lib/dominio";
 import { fechaLarga } from "@/lib/fechas";
 
+import { crearTraductor } from "@/lib/i18n";
+import { leerIdioma } from "@/lib/preferencias";
 export const dynamic = "force-dynamic";
 
 export default async function AjustesCliente({
@@ -16,6 +18,7 @@ export default async function AjustesCliente({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const t = crearTraductor(await leerIdioma());
   const { id } = await params;
   const [cliente, partners] = await Promise.all([obtenerCliente(id), listarPartners()]);
   if (!cliente) notFound();
@@ -27,13 +30,13 @@ export default async function AjustesCliente({
 
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
-            <label className="etiqueta">Nombre legal</label>
+            <label className="etiqueta">{t("Nombre legal")}</label>
             <input name="nombre" required defaultValue={cliente.nombre} className="campo" />
           </div>
           <div>
-            <label className="etiqueta">Partner</label>
+            <label className="etiqueta">{t("Partner")}</label>
             <select name="partner_id" className="campo" defaultValue={cliente.partner_id ?? ""}>
-              <option value="">Sin partner</option>
+              <option value="">{t("Sin partner")}</option>
               {partners.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.nombre}
@@ -42,27 +45,27 @@ export default async function AjustesCliente({
             </select>
           </div>
           <div>
-            <label className="etiqueta">Fase</label>
+            <label className="etiqueta">{t("Fase")}</label>
             <select name="fase" className="campo" defaultValue={cliente.fase}>
               {FASES.map((f) => (
                 <option key={f} value={f}>
-                  {ETIQUETA_FASE[f]}
+                  {t(ETIQUETA_FASE[f])}
                 </option>
               ))}
             </select>
           </div>
           <div>
-            <label className="etiqueta">Estado</label>
+            <label className="etiqueta">{t("Estado")}</label>
             <select name="estado" className="campo" defaultValue={cliente.estado}>
               {ESTADOS_CLIENTE.map((e) => (
                 <option key={e} value={e}>
-                  {ETIQUETA_ESTADO_CLIENTE[e]}
+                  {t(ETIQUETA_ESTADO_CLIENTE[e])}
                 </option>
               ))}
             </select>
           </div>
           <div className="sm:col-span-2">
-            <label className="etiqueta">Responsable interno</label>
+            <label className="etiqueta">{t("Responsable interno")}</label>
             <input
               name="owner_interno"
               defaultValue={cliente.owner_interno ?? ""}
@@ -70,7 +73,7 @@ export default async function AjustesCliente({
             />
           </div>
           <div className="sm:col-span-2">
-            <label className="etiqueta">Descripción</label>
+            <label className="etiqueta">{t("Descripción")}</label>
             <textarea
               name="descripcion"
               rows={3}
@@ -85,9 +88,7 @@ export default async function AjustesCliente({
           {fechaLarga(cliente.fecha_alta)}.
         </p>
 
-        <button type="submit" className="boton">
-          Guardar
-        </button>
+        <button type="submit" className="boton">{t("Guardar")}</button>
       </form>
 
       <form action={archivarCliente} className="tarjeta p-5">

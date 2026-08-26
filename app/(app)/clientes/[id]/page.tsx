@@ -16,6 +16,9 @@ import {
 } from "@/lib/dominio";
 import { fechaCorta, textoRelativo, diasHasta } from "@/lib/fechas";
 
+import { crearTraductor } from "@/lib/i18n";
+import { leerIdioma } from "@/lib/preferencias";
+import { traducirFilas } from "@/lib/traduccion";
 export const dynamic = "force-dynamic";
 
 function Dato({
@@ -61,6 +64,7 @@ function variacion(actual: string | null, previo: string | null) {
 }
 
 export default async function Resumen({ params }: { params: Promise<{ id: string }> }) {
+  const t = crearTraductor(await leerIdioma());
   const { id } = await params;
   const cliente = await obtenerCliente(id);
   if (!cliente) notFound();
@@ -72,17 +76,24 @@ export default async function Resumen({ params }: { params: Promise<{ id: string
     resumenMensual(id, 2),
   ]);
 
+  const idioma = await leerIdioma();
+  const [eventosT, hitosT, compromisosT] = await Promise.all([
+    traducirFilas(idioma, eventos, ["titulo", "cuerpo"]),
+    traducirFilas(idioma, hitos, ["titulo", "notas"]),
+    traducirFilas(idioma, compromisos, ["descripcion"]),
+  ]);
+
   const base = `/clientes/${id}`;
   const mes = resumen[0] ?? null;
   const previo = resumen[1] ?? null;
 
-  const abiertos = eventos.filter(
+  const abiertos = eventosT.filter(
     (e) => e.estado_seguimiento === "abierto" || e.estado_seguimiento === "en_curso",
   );
-  const proximoHito = hitos.find(
+  const proximoHito = hitosT.find(
     (h) => h.estado === "pendiente" || h.estado === "en_curso",
   );
-  const pendientes = compromisos.filter((c) => c.estado === "pendiente");
+  const pendientes = compromisosT.filter((c) => c.estado === "pendiente");
   const vencidos = pendientes.filter(
     (c) => c.fecha_limite && (diasHasta(c.fecha_limite) ?? 0) < 0,
   );
@@ -124,13 +135,11 @@ export default async function Resumen({ params }: { params: Promise<{ id: string
       <div className="grid lg:grid-cols-2 gap-6">
         <section>
           <div className="flex items-baseline justify-between mb-2">
-            <h2 className="text-sm font-semibold">Asuntos abiertos</h2>
-            <Link href={`${base}/timeline`} className="text-xs" style={{ color: "var(--texto-3)" }}>
-              Ver timeline
-            </Link>
+            <h2 className="text-sm font-semibold">{t("Asuntos abiertos")}</h2>
+            <Link href={`${base}/timeline`} className="text-xs" style={{ color: "var(--texto-3)" }}>{t("Ver timeline")}</Link>
           </div>
           {abiertos.length === 0 ? (
-            <Vacio>Nada sin cerrar.</Vacio>
+            <Vacio>{t("Nada sin cerrar.")}</Vacio>
           ) : (
             <div className="tarjeta divide-y" style={{ borderColor: "var(--borde)" }}>
               {abiertos.slice(0, 5).map((e) => {
@@ -140,10 +149,10 @@ export default async function Resumen({ params }: { params: Promise<{ id: string
                   <div key={e.id} className="px-4 py-2.5" style={{ borderColor: "var(--borde)" }}>
                     <div className="flex items-center gap-2 flex-wrap">
                       <Pastilla fondo={c.fondo} texto={c.texto}>
-                        {ETIQUETA_EVENTO[e.tipo]}
+                        {t(ETIQUETA_EVENTO[e.tipo])}
                       </Pastilla>
                       <Pastilla fondo={s.fondo} texto={s.texto}>
-                        {ETIQUETA_SEGUIMIENTO[e.estado_seguimiento!]}
+                        {t(ETIQUETA_SEGUIMIENTO[e.estado_seguimiento!])}
                       </Pastilla>
                       <span className="text-sm">{e.titulo}</span>
                     </div>
@@ -156,17 +165,15 @@ export default async function Resumen({ params }: { params: Promise<{ id: string
 
         <section>
           <div className="flex items-baseline justify-between mb-2">
-            <h2 className="text-sm font-semibold">Compromisos</h2>
+            <h2 className="text-sm font-semibold">{t("Compromisos")}</h2>
             <Link
               href={`${base}/compromisos`}
               className="text-xs"
               style={{ color: "var(--texto-3)" }}
-            >
-              Ver todos
-            </Link>
+            >{t("Ver todos")}</Link>
           </div>
           {pendientes.length === 0 ? (
-            <Vacio>Sin compromisos abiertos.</Vacio>
+            <Vacio>{t("Sin compromisos abiertos.")}</Vacio>
           ) : (
             <div className="tarjeta divide-y" style={{ borderColor: "var(--borde)" }}>
               {pendientes.slice(0, 5).map((c) => {
@@ -195,19 +202,17 @@ export default async function Resumen({ params }: { params: Promise<{ id: string
 
       <section>
         <div className="flex items-baseline justify-between mb-2">
-          <h2 className="text-sm font-semibold">Próximo hito</h2>
-          <Link href={`${base}/hitos`} className="text-xs" style={{ color: "var(--texto-3)" }}>
-            Ver hitos
-          </Link>
+          <h2 className="text-sm font-semibold">{t("Próximo hito")}</h2>
+          <Link href={`${base}/hitos`} className="text-xs" style={{ color: "var(--texto-3)" }}>{t("Ver hitos")}</Link>
         </div>
         {!proximoHito ? (
-          <Vacio>Sin hitos pendientes.</Vacio>
+          <Vacio>{t("Sin hitos pendientes.")}</Vacio>
         ) : (
           <div className="tarjeta px-4 py-3 flex items-center justify-between gap-3">
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-sm font-medium">{proximoHito.titulo}</span>
-                <Pastilla>{ETIQUETA_HITO[proximoHito.tipo]}</Pastilla>
+                <Pastilla>{t(ETIQUETA_HITO[proximoHito.tipo])}</Pastilla>
                 {proximoHito.veces_movido > 0 && (
                   <Pastilla fondo="var(--oportunidad-suave)" texto="var(--oportunidad)">
                     movido {proximoHito.veces_movido}×
@@ -229,7 +234,7 @@ export default async function Resumen({ params }: { params: Promise<{ id: string
 
       {cliente.descripcion && (
         <section>
-          <h2 className="text-sm font-semibold mb-2">Descripción</h2>
+          <h2 className="text-sm font-semibold mb-2">{t("Descripción")}</h2>
           <p className="text-sm" style={{ color: "var(--texto-2)" }}>
             {cliente.descripcion}
           </p>

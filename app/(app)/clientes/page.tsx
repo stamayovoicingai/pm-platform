@@ -5,6 +5,8 @@ import { Vacio } from "@/components/Seccion";
 import { ETIQUETA_FASE, FASES, colorFase, type Fase } from "@/lib/dominio";
 import { fechaCorta, textoRelativo, diasHasta } from "@/lib/fechas";
 
+import { crearTraductor } from "@/lib/i18n";
+import { leerIdioma } from "@/lib/preferencias";
 export const dynamic = "force-dynamic";
 
 function miles(valor: string | null) {
@@ -33,6 +35,7 @@ export default async function Clientes({
 }: {
   searchParams: Promise<{ fase?: string }>;
 }) {
+  const t = crearTraductor(await leerIdioma());
   const { fase } = await searchParams;
   const faseFiltro = FASES.includes(fase as Fase) ? (fase as Fase) : undefined;
   const clientes = await listarClientes({ fase: faseFiltro });
@@ -41,14 +44,12 @@ export default async function Clientes({
     <>
       <div className="flex items-start justify-between gap-4 mb-4">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Clientes</h1>
+          <h1 className="text-xl font-semibold tracking-tight">{t("Clientes")}</h1>
           <p className="text-sm mt-0.5" style={{ color: "var(--texto-2)" }}>
             {clientes.length} activo{clientes.length === 1 ? "" : "s"}
           </p>
         </div>
-        <Link href="/clientes/nuevo" className="boton shrink-0">
-          Nuevo cliente
-        </Link>
+        <Link href="/clientes/nuevo" className="boton shrink-0">{t("Nuevo cliente")}</Link>
       </div>
 
       <div className="flex gap-1.5 mb-4 overflow-x-auto pb-1">
@@ -60,9 +61,7 @@ export default async function Clientes({
             color: !faseFiltro ? "var(--acento)" : "var(--texto-2)",
             border: "1px solid var(--borde)",
           }}
-        >
-          Todas
-        </Link>
+        >{t("Todas")}</Link>
         {FASES.map((f) => (
           <Link
             key={f}
@@ -74,26 +73,26 @@ export default async function Clientes({
               border: "1px solid var(--borde)",
             }}
           >
-            {ETIQUETA_FASE[f]}
+            {t(ETIQUETA_FASE[f])}
           </Link>
         ))}
       </div>
 
       {clientes.length === 0 ? (
         <Vacio>
-          No hay clientes {faseFiltro ? `en fase ${ETIQUETA_FASE[faseFiltro]}` : "todavía"}.
+          No hay clientes {faseFiltro ? `en fase ${t(ETIQUETA_FASE[faseFiltro])}` : "todavía"}.
         </Vacio>
       ) : (
         <div className="tarjeta overflow-x-auto">
           <table className="w-full text-sm" style={{ minWidth: "48rem" }}>
             <thead>
               <tr style={{ color: "var(--texto-3)" }}>
-                <th className="text-left font-medium px-3 py-2">Cliente</th>
-                <th className="text-left font-medium px-3 py-2">Fase</th>
-                <th className="text-right font-medium px-3 py-2">Llamadas mes</th>
-                <th className="text-left font-medium px-3 py-2">Próximo hito</th>
-                <th className="text-right font-medium px-3 py-2">Abiertos</th>
-                <th className="text-right font-medium px-3 py-2">Último registro</th>
+                <th className="text-left font-medium px-3 py-2">{t("Cliente")}</th>
+                <th className="text-left font-medium px-3 py-2">{t("Fase")}</th>
+                <th className="text-right font-medium px-3 py-2">{t("Llamadas mes")}</th>
+                <th className="text-left font-medium px-3 py-2">{t("Próximo hito")}</th>
+                <th className="text-right font-medium px-3 py-2">{t("Abiertos")}</th>
+                <th className="text-right font-medium px-3 py-2">{t("Último registro")}</th>
               </tr>
             </thead>
             <tbody>
@@ -117,7 +116,7 @@ export default async function Clientes({
                     </td>
                     <td className="px-3 py-2">
                       <Pastilla fondo={color.fondo} texto={color.texto}>
-                        {ETIQUETA_FASE[c.fase]}
+                        {t(ETIQUETA_FASE[c.fase])}
                       </Pastilla>
                     </td>
                     <td className="px-3 py-2 text-right whitespace-nowrap">

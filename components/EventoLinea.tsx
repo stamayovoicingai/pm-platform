@@ -21,11 +21,13 @@ import { fechaCorta, textoRelativo } from "@/lib/fechas";
 import type { EventoFila, Actualizacion } from "@/lib/consultas/eventos";
 import type { AdjuntoFila } from "@/lib/consultas/adjuntos";
 
+import { crearTraductor } from "@/lib/i18n";
+import { leerIdioma } from "@/lib/preferencias";
 /**
  * Una entrada del timeline. Si el evento admite seguimiento, trae su estado y
  * el hilo de actualizaciones: qué se fue sabiendo y qué cambió.
  */
-export default function EventoLinea({
+export default async function EventoLinea({
   evento,
   actualizaciones = [],
   adjuntos = [],
@@ -36,6 +38,7 @@ export default function EventoLinea({
   adjuntos?: AdjuntoFila[];
   mostrarCliente?: boolean;
 }) {
+  const t = crearTraductor(await leerIdioma());
   const color = colorEvento(evento.tipo);
   const estado = evento.estado_seguimiento;
   const seguible = estado !== null;
@@ -51,7 +54,7 @@ export default function EventoLinea({
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
             <Pastilla fondo={color.fondo} texto={color.texto}>
-              {ETIQUETA_EVENTO[evento.tipo]}
+              {t(ETIQUETA_EVENTO[evento.tipo])}
             </Pastilla>
 
             {seguible && (
@@ -59,14 +62,12 @@ export default function EventoLinea({
                 fondo={colorSeguimiento(estado).fondo}
                 texto={colorSeguimiento(estado).texto}
               >
-                {ETIQUETA_SEGUIMIENTO[estado]}
+                {t(ETIQUETA_SEGUIMIENTO[estado])}
               </Pastilla>
             )}
 
             {evento.severidad === "alta" && !cerrado && (
-              <Pastilla fondo="var(--riesgo-suave)" texto="var(--riesgo)">
-                alta
-              </Pastilla>
+              <Pastilla fondo="var(--riesgo-suave)" texto="var(--riesgo)">{t("alta")}</Pastilla>
             )}
 
             {evento.origen !== "app" && <Pastilla>{evento.origen}</Pastilla>}
@@ -120,7 +121,7 @@ export default function EventoLinea({
                       type="submit"
                       className="text-xs px-1"
                       style={{ color: "var(--texto-3)" }}
-                      title="Quitar adjunto"
+                      title={t("Quitar adjunto")}
                     >
                       ×
                     </button>
@@ -138,10 +139,8 @@ export default function EventoLinea({
                 type="submit"
                 className="text-xs"
                 style={{ color: "var(--texto-2)" }}
-                title="Pasa a asuntos abiertos hasta que lo cierres"
-              >
-                Hacer seguimiento
-              </button>
+                title={t("Pasa a asuntos abiertos hasta que lo cierres")}
+              >{t("Hacer seguimiento")}</button>
             </form>
           )}
 
@@ -149,9 +148,7 @@ export default function EventoLinea({
             <summary
               className="text-xs cursor-pointer select-none inline-block"
               style={{ color: "var(--texto-3)" }}
-            >
-              Adjuntar archivo
-            </summary>
+            >{t("Adjuntar archivo")}</summary>
             <form action={subirAdjunto} className="mt-2 flex flex-wrap items-center gap-2">
               <input type="hidden" name="evento_id" value={evento.id} />
               <input type="hidden" name="cliente_id" value={evento.cliente_id} />
@@ -163,9 +160,7 @@ export default function EventoLinea({
                 className="text-sm"
                 style={{ color: "var(--texto-2)" }}
               />
-              <button type="submit" className="boton-suave text-xs">
-                Subir
-              </button>
+              <button type="submit" className="boton-suave text-xs">{t("Subir")}</button>
               <span className="text-xs" style={{ color: "var(--texto-3)" }}>
                 hasta {MAX_ARCHIVOS_POR_SUBIDA}, {tamanoLegible(LIMITE_BYTES)} cada uno
               </span>
@@ -202,7 +197,7 @@ export default function EventoLinea({
                             texto={colorSeguimiento(a.estado_nuevo).texto}
                           >
                             {a.estado_anterior
-                              ? `${ETIQUETA_SEGUIMIENTO[a.estado_anterior]} → ${
+                              ? `${t(ETIQUETA_SEGUIMIENTO[a.estado_anterior])} → ${
                                   ETIQUETA_SEGUIMIENTO[a.estado_nuevo]
                                 }`
                               : ETIQUETA_SEGUIMIENTO[a.estado_nuevo]}
@@ -228,7 +223,7 @@ export default function EventoLinea({
                   required
                   rows={2}
                   className="campo"
-                  placeholder="Qué pasó con esto"
+                  placeholder={t("Qué pasó con esto")}
                 />
                 <div className="flex items-center gap-2">
                   <select
@@ -237,16 +232,14 @@ export default function EventoLinea({
                     style={{ width: "auto" }}
                     defaultValue=""
                   >
-                    <option value="">Sin cambiar el estado</option>
+                    <option value="">{t("Sin cambiar el estado")}</option>
                     {ESTADOS_SEGUIMIENTO.filter((e) => e !== estado).map((e) => (
                       <option key={e} value={e}>
                         Marcar como {ETIQUETA_SEGUIMIENTO[e].toLowerCase()}
                       </option>
                     ))}
                   </select>
-                  <button type="submit" className="boton">
-                    Añadir
-                  </button>
+                  <button type="submit" className="boton">{t("Añadir")}</button>
                 </div>
               </form>
             </details>

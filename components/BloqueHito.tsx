@@ -4,13 +4,16 @@ import { ETIQUETA_HITO, ETIQUETA_ESTADO_HITO, ESTADOS_HITO } from "@/lib/dominio
 import { fechaCorta, textoRelativo, diasHasta, aISO } from "@/lib/fechas";
 import type { HitoFila, CambioFecha } from "@/lib/consultas/hitos";
 
-export default function BloqueHito({
+import { crearTraductor } from "@/lib/i18n";
+import { leerIdioma } from "@/lib/preferencias";
+export default async function BloqueHito({
   hito,
   historial,
 }: {
   hito: HitoFila;
   historial: CambioFecha[];
 }) {
+  const t = crearTraductor(await leerIdioma());
   const abierto = hito.estado === "pendiente" || hito.estado === "en_curso";
   const dias = diasHasta(hito.fecha_objetivo);
   const urgente = abierto && dias !== null && dias <= 3;
@@ -23,8 +26,8 @@ export default function BloqueHito({
             <span className={`text-sm font-medium ${abierto ? "" : "line-through"}`}>
               {hito.titulo}
             </span>
-            <Pastilla>{ETIQUETA_HITO[hito.tipo]}</Pastilla>
-            {!abierto && <Pastilla>{ETIQUETA_ESTADO_HITO[hito.estado]}</Pastilla>}
+            <Pastilla>{t(ETIQUETA_HITO[hito.tipo])}</Pastilla>
+            {!abierto && <Pastilla>{t(ETIQUETA_ESTADO_HITO[hito.estado])}</Pastilla>}
             {hito.veces_movido > 0 && (
               <Pastilla fondo="var(--oportunidad-suave)" texto="var(--oportunidad)">
                 movido {hito.veces_movido}×
@@ -69,7 +72,7 @@ export default function BloqueHito({
             <input type="hidden" name="cliente_id" value={hito.cliente_id} />
             <div className="grid sm:grid-cols-[10rem_1fr_auto] gap-2 items-end">
               <div>
-                <label className="etiqueta">Nueva fecha</label>
+                <label className="etiqueta">{t("Nueva fecha")}</label>
                 <input
                   type="date"
                   name="fecha_nueva"
@@ -79,17 +82,15 @@ export default function BloqueHito({
                 />
               </div>
               <div>
-                <label className="etiqueta">Motivo</label>
+                <label className="etiqueta">{t("Motivo")}</label>
                 <input
                   name="motivo"
                   required
                   className="campo"
-                  placeholder="Falta aprobación del cliente"
+                  placeholder={t("Falta aprobación del cliente")}
                 />
               </div>
-              <button type="submit" className="boton">
-                Mover
-              </button>
+              <button type="submit" className="boton">{t("Mover")}</button>
             </div>
           </form>
 
@@ -120,13 +121,11 @@ export default function BloqueHito({
           >
             {ESTADOS_HITO.map((e) => (
               <option key={e} value={e}>
-                {ETIQUETA_ESTADO_HITO[e]}
+                {t(ETIQUETA_ESTADO_HITO[e])}
               </option>
             ))}
           </select>
-          <button type="submit" className="text-xs" style={{ color: "var(--texto-2)" }}>
-            Aplicar
-          </button>
+          <button type="submit" className="text-xs" style={{ color: "var(--texto-2)" }}>{t("Aplicar")}</button>
         </form>
       </div>
     </div>

@@ -7,6 +7,8 @@ import { Vacio } from "./Seccion";
 import type { ResumenMes, ObjetivoMes, MetricaMes } from "@/lib/consultas/metricas";
 import { aISO, inicioMes } from "@/lib/fechas";
 
+import { crearTraductor } from "@/lib/i18n";
+import { leerIdioma } from "@/lib/preferencias";
 const MESES = [
   "enero", "febrero", "marzo", "abril", "mayo", "junio",
   "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
@@ -52,7 +54,7 @@ function Delta({ valor }: { valor: number | null }) {
   );
 }
 
-export default function ResumenMetricas({
+export default async function ResumenMetricas({
   clienteId,
   resumen,
   objetivos,
@@ -63,6 +65,7 @@ export default function ResumenMetricas({
   objetivos: ObjetivoMes[];
   meses: MetricaMes[];
 }) {
+  const t = crearTraductor(await leerIdioma());
   const periodoActual = inicioMes();
   const objetivoActual = objetivos.find((o) => aISO(o.periodo) === periodoActual);
 
@@ -78,12 +81,12 @@ export default function ResumenMetricas({
           <table className="w-full text-sm" style={{ minWidth: "34rem" }}>
             <thead>
               <tr style={{ color: "var(--texto-3)" }}>
-                <th className="text-left font-medium px-4 py-2.5">Mes</th>
-                <th className="text-right font-medium px-3 py-2.5">Llamadas</th>
-                <th className="text-right font-medium px-3 py-2.5">Minutos</th>
-                <th className="text-right font-medium px-3 py-2.5">Media</th>
-                <th className="text-right font-medium px-3 py-2.5">Contención</th>
-                <th className="text-right font-medium px-4 py-2.5">Objetivo</th>
+                <th className="text-left font-medium px-4 py-2.5">{t("Mes")}</th>
+                <th className="text-right font-medium px-3 py-2.5">{t("Llamadas")}</th>
+                <th className="text-right font-medium px-3 py-2.5">{t("Minutos")}</th>
+                <th className="text-right font-medium px-3 py-2.5">{t("Media")}</th>
+                <th className="text-right font-medium px-3 py-2.5">{t("Contención")}</th>
+                <th className="text-right font-medium px-4 py-2.5">{t("Objetivo")}</th>
               </tr>
             </thead>
             <tbody>
@@ -142,9 +145,7 @@ export default function ResumenMetricas({
         <summary
           className="px-4 py-2.5 text-sm cursor-pointer select-none"
           style={{ color: "var(--texto-2)" }}
-        >
-          Cargar un mes completo
-        </summary>
+        >{t("Cargar un mes completo")}</summary>
         <div className="px-4 pb-4 pt-1 space-y-3">
           <p className="text-xs" style={{ color: "var(--texto-3)" }}>
             Para meses de los que tienes el total pero no el día a día. Un mes cargado
@@ -155,25 +156,23 @@ export default function ResumenMetricas({
             <input type="hidden" name="cliente_id" value={clienteId} />
             <div className="grid sm:grid-cols-4 gap-3">
               <div>
-                <label className="etiqueta">Mes</label>
+                <label className="etiqueta">{t("Mes")}</label>
                 <input type="month" name="periodo" required className="campo" />
               </div>
               <div>
-                <label className="etiqueta">Llamadas</label>
+                <label className="etiqueta">{t("Llamadas")}</label>
                 <input name="llamadas_totales" inputMode="numeric" className="campo" />
               </div>
               <div>
-                <label className="etiqueta">Minutos</label>
+                <label className="etiqueta">{t("Minutos")}</label>
                 <input name="duracion_total_min" inputMode="decimal" className="campo" />
               </div>
               <div>
-                <label className="etiqueta">Contención %</label>
+                <label className="etiqueta">{t("Contención %")}</label>
                 <input name="contencion_pct" inputMode="decimal" className="campo" />
               </div>
             </div>
-            <button type="submit" className="boton">
-              Guardar mes
-            </button>
+            <button type="submit" className="boton">{t("Guardar mes")}</button>
           </form>
 
           {meses.length > 0 && (
@@ -197,9 +196,7 @@ export default function ResumenMetricas({
                       type="submit"
                       className="text-xs"
                       style={{ color: "var(--texto-3)" }}
-                    >
-                      Quitar
-                    </button>
+                    >{t("Quitar")}</button>
                   </form>
                 </li>
               ))}
@@ -212,15 +209,13 @@ export default function ResumenMetricas({
         <summary
           className="px-4 py-2.5 text-sm cursor-pointer select-none"
           style={{ color: "var(--texto-2)" }}
-        >
-          Objetivo del mes
-        </summary>
+        >{t("Objetivo del mes")}</summary>
         <form action={guardarObjetivoMes} className="px-4 pb-4 pt-1 space-y-3">
           <input type="hidden" name="cliente_id" value={clienteId} />
           <input type="hidden" name="periodo" value={periodoActual} />
           <div className="grid sm:grid-cols-2 gap-3">
             <div>
-              <label className="etiqueta">Llamadas comprometidas</label>
+              <label className="etiqueta">{t("Llamadas comprometidas")}</label>
               <input
                 name="llamadas_comprometidas"
                 inputMode="numeric"
@@ -229,7 +224,7 @@ export default function ResumenMetricas({
               />
             </div>
             <div>
-              <label className="etiqueta">Minutos comprometidos</label>
+              <label className="etiqueta">{t("Minutos comprometidos")}</label>
               <input
                 name="minutos_comprometidos"
                 inputMode="decimal"
@@ -241,9 +236,7 @@ export default function ResumenMetricas({
           <p className="text-xs" style={{ color: "var(--texto-3)" }}>
             Lo vendido para {nombreMes(periodoActual)}. Dejar ambos vacíos borra el objetivo.
           </p>
-          <button type="submit" className="boton">
-            Guardar objetivo
-          </button>
+          <button type="submit" className="boton">{t("Guardar objetivo")}</button>
         </form>
       </details>
     </>

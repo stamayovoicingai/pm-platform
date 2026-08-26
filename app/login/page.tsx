@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { sesionActual, verificarCredenciales, crearSesion } from "@/lib/auth";
 
+import { crearTraductor } from "@/lib/i18n";
+import { leerIdioma } from "@/lib/preferencias";
 export const dynamic = "force-dynamic";
 
 export default async function Login({
@@ -8,6 +10,7 @@ export default async function Login({
 }: {
   searchParams: Promise<{ volver?: string; error?: string }>;
 }) {
+  const t = crearTraductor(await leerIdioma());
   const { volver, error } = await searchParams;
 
   if (await sesionActual()) redirect(volver ?? "/");
@@ -31,19 +34,15 @@ export default async function Login({
     <main className="min-h-screen grid place-items-center px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8">
-          <h1 className="text-2xl font-semibold tracking-tight">PM Platform</h1>
-          <p className="text-sm mt-1" style={{ color: "var(--texto-2)" }}>
-            Centro de control de producto
-          </p>
+          <h1 className="text-2xl font-semibold tracking-tight">{t("PM Platform")}</h1>
+          <p className="text-sm mt-1" style={{ color: "var(--texto-2)" }}>{t("Centro de control de producto")}</p>
         </div>
 
         <form action={entrar} className="tarjeta p-6 space-y-4">
           <input type="hidden" name="volver" value={volver ?? ""} />
 
           <div>
-            <label className="etiqueta" htmlFor="email">
-              Email
-            </label>
+            <label className="etiqueta" htmlFor="email">{t("Email")}</label>
             <input
               id="email"
               name="email"
@@ -55,9 +54,7 @@ export default async function Login({
           </div>
 
           <div>
-            <label className="etiqueta" htmlFor="password">
-              Contraseña
-            </label>
+            <label className="etiqueta" htmlFor="password">{t("Contraseña")}</label>
             <input
               id="password"
               name="password"
@@ -69,14 +66,10 @@ export default async function Login({
           </div>
 
           {error && (
-            <p className="text-sm" style={{ color: "var(--riesgo)" }}>
-              Email o contraseña incorrectos.
-            </p>
+            <p className="text-sm" style={{ color: "var(--riesgo)" }}>{t("Email o contraseña incorrectos.")}</p>
           )}
 
-          <button type="submit" className="boton w-full justify-center">
-            Entrar
-          </button>
+          <button type="submit" className="boton w-full justify-center">{t("Entrar")}</button>
         </form>
       </div>
     </main>

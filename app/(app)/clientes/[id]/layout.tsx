@@ -6,6 +6,8 @@ import Pastilla from "@/components/Pastilla";
 import Pestanas from "@/components/Pestanas";
 import { ETIQUETA_FASE, ETIQUETA_ESTADO_CLIENTE, colorFase } from "@/lib/dominio";
 
+import { crearTraductor } from "@/lib/i18n";
+import { leerIdioma } from "@/lib/preferencias";
 export const dynamic = "force-dynamic";
 
 type Contadores = {
@@ -23,6 +25,7 @@ export default async function ClienteLayout({
   children: React.ReactNode;
   params: Promise<{ id: string }>;
 }) {
+  const t = crearTraductor(await leerIdioma());
   const { id } = await params;
   const cliente = await obtenerCliente(id);
   if (!cliente) notFound();
@@ -46,9 +49,7 @@ export default async function ClienteLayout({
   return (
     <>
       <div className="text-xs mb-2" style={{ color: "var(--texto-3)" }}>
-        <Link href="/clientes" className="hover:underline">
-          Clientes
-        </Link>
+        <Link href="/clientes" className="hover:underline">{t("Clientes")}</Link>
         {cliente.partner_nombre && ` · ${cliente.partner_nombre}`}
       </div>
 
@@ -59,10 +60,10 @@ export default async function ClienteLayout({
               {cliente.nombre}
             </h1>
             <Pastilla fondo={color.fondo} texto={color.texto}>
-              {ETIQUETA_FASE[cliente.fase]}
+              {t(ETIQUETA_FASE[cliente.fase])}
             </Pastilla>
             {cliente.estado !== "activo" && (
-              <Pastilla>{ETIQUETA_ESTADO_CLIENTE[cliente.estado]}</Pastilla>
+              <Pastilla>{t(ETIQUETA_ESTADO_CLIENTE[cliente.estado])}</Pastilla>
             )}
             {conteo.abiertos > 0 && (
               <Pastilla fondo="var(--riesgo-suave)" texto="var(--riesgo)">

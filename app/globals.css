@@ -24,8 +24,12 @@
   --creciendo-suave: #e6f0ec;
 }
 
+/* Paleta oscura, en dos sitios a propósito:
+   - bajo prefers-color-scheme para quien no ha elegido nada, excluyendo a quien
+     eligió claro explícitamente;
+   - bajo [data-theme="dark"] para que la elección gane sobre el sistema. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --fondo: #16161a;
     --superficie: #1e1e23;
     --superficie-2: #24242a;
@@ -43,6 +47,37 @@
     --creciendo: #6ec3a8;
     --creciendo-suave: #1b3831;
   }
+}
+
+:root[data-theme="dark"] {
+  --fondo: #16161a;
+  --superficie: #1e1e23;
+  --superficie-2: #24242a;
+  --borde: #32323a;
+  --borde-fuerte: #45454f;
+  --texto: #ecece9;
+  --texto-2: #a2a29c;
+  --texto-3: #75756f;
+  --acento: #6ec3a8;
+  --acento-suave: #1b3831;
+  --riesgo: #e88b80;
+  --riesgo-suave: #3a221f;
+  --oportunidad: #e0b060;
+  --oportunidad-suave: #382c17;
+  --creciendo: #6ec3a8;
+  --creciendo-suave: #1b3831;
+}
+
+html {
+  color-scheme: light dark;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
 }
 
 html,
@@ -100,9 +135,13 @@ body {
 }
 
 @media (prefers-color-scheme: dark) {
-  .boton {
+  :root:not([data-theme="light"]) .boton {
     color: #10231e;
   }
+}
+
+:root[data-theme="dark"] .boton {
+  color: #10231e;
 }
 
 .boton:hover {

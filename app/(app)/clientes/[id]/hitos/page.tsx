@@ -4,11 +4,15 @@ import { Vacio } from "@/components/Seccion";
 import { crearHito } from "@/app/acciones";
 import { TIPOS_HITO, ETIQUETA_HITO } from "@/lib/dominio";
 
+import { crearTraductor } from "@/lib/i18n";
+import { leerIdioma } from "@/lib/preferencias";
+import { traducirFilas } from "@/lib/traduccion";
 export const dynamic = "force-dynamic";
 
 export default async function HitosCliente({ params }: { params: Promise<{ id: string }> }) {
+  const t = crearTraductor(await leerIdioma());
   const { id } = await params;
-  const hitos = await hitosCliente(id);
+  const hitos = await traducirFilas(await leerIdioma(), await hitosCliente(id), ["titulo", "notas"]);
 
   const historiales = Object.fromEntries(
     await Promise.all(
@@ -24,43 +28,39 @@ export default async function HitosCliente({ params }: { params: Promise<{ id: s
         <summary
           className="px-4 py-2.5 text-sm cursor-pointer select-none"
           style={{ color: "var(--texto-2)" }}
-        >
-          Añadir hito
-        </summary>
+        >{t("Añadir hito")}</summary>
         <form action={crearHito} className="px-4 pb-4 pt-1 space-y-3">
           <input type="hidden" name="cliente_id" value={id} />
           <div className="grid sm:grid-cols-[1fr_11rem_9rem] gap-3">
             <div>
-              <label className="etiqueta">Título</label>
-              <input name="titulo" required className="campo" placeholder="Salida a producción" />
+              <label className="etiqueta">{t("Título")}</label>
+              <input name="titulo" required className="campo" placeholder={t("Salida a producción")} />
             </div>
             <div>
-              <label className="etiqueta">Tipo</label>
+              <label className="etiqueta">{t("Tipo")}</label>
               <select name="tipo" className="campo" defaultValue="go_live">
-                {TIPOS_HITO.map((t) => (
-                  <option key={t} value={t}>
-                    {ETIQUETA_HITO[t]}
+                {TIPOS_HITO.map((tipo) => (
+                  <option key={tipo} value={tipo}>
+                    {t(ETIQUETA_HITO[tipo])}
                   </option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="etiqueta">Fecha</label>
+              <label className="etiqueta">{t("Fecha")}</label>
               <input type="date" name="fecha_objetivo" required className="campo" />
             </div>
           </div>
           <div>
-            <label className="etiqueta">Notas</label>
+            <label className="etiqueta">{t("Notas")}</label>
             <input name="notas" className="campo" />
           </div>
-          <button type="submit" className="boton">
-            Añadir hito
-          </button>
+          <button type="submit" className="boton">{t("Añadir hito")}</button>
         </form>
       </details>
 
       {hitos.length === 0 ? (
-        <Vacio>Sin hitos definidos.</Vacio>
+        <Vacio>{t("Sin hitos definidos.")}</Vacio>
       ) : (
         <div className="space-y-2">
           {hitos.map((h) => (

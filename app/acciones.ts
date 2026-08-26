@@ -6,6 +6,12 @@ import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { sql, uno, enTransaccion } from "@/lib/db";
 import { sesionActual } from "@/lib/auth";
+import {
+  TEMAS,
+  IDIOMAS,
+  guardarTema,
+  guardarIdioma,
+} from "@/lib/preferencias";
 import { aSegundos } from "@/lib/aht";
 import {
   LIMITE_BYTES,
@@ -39,6 +45,21 @@ function campo(datos: FormData, nombre: string) {
   return typeof valor === "string" ? valor : "";
 }
 
+
+
+// ---------------------------------------------------------------- preferencias
+
+export async function cambiarTema(datos: FormData) {
+  const tema = z.enum(TEMAS).parse(campo(datos, "tema"));
+  await guardarTema(tema);
+  revalidatePath("/", "layout");
+}
+
+export async function cambiarIdioma(datos: FormData) {
+  const idioma = z.enum(IDIOMAS).parse(campo(datos, "idioma"));
+  await guardarIdioma(idioma);
+  revalidatePath("/", "layout");
+}
 
 // ---------------------------------------------------------------- cuenta
 

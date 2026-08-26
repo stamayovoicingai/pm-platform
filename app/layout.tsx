@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { leerTema, leerIdioma, atributoTema } from "@/lib/preferencias";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -6,9 +7,11 @@ export const metadata: Metadata = {
   description: "Centro de control de producto de VoicingAI",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const [tema, idioma] = await Promise.all([leerTema(), leerIdioma()]);
+
   return (
-    <html lang="es">
+    <html lang={idioma} data-theme={atributoTema(tema)}>
       <body>{children}</body>
     </html>
   );

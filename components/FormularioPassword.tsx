@@ -3,7 +3,9 @@
 import { useRef, useState } from "react";
 import { cambiarPassword } from "@/app/acciones";
 
+import { useT } from "@/components/Idioma";
 export default function FormularioPassword() {
+  const t = useT();
   const formulario = useRef<HTMLFormElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [hecho, setHecho] = useState(false);
@@ -28,12 +30,10 @@ export default function FormularioPassword() {
       }}
       className="tarjeta p-5 space-y-4"
     >
-      <h2 className="text-sm font-semibold">Cambiar contraseña</h2>
+      <h2 className="text-sm font-semibold">{t("Cambiar contraseña")}</h2>
 
       <div>
-        <label className="etiqueta" htmlFor="actual">
-          Contraseña actual
-        </label>
+        <label className="etiqueta" htmlFor="actual">{t("Contraseña actual")}</label>
         <input
           id="actual"
           name="actual"
@@ -45,9 +45,7 @@ export default function FormularioPassword() {
       </div>
 
       <div>
-        <label className="etiqueta" htmlFor="nueva">
-          Contraseña nueva
-        </label>
+        <label className="etiqueta" htmlFor="nueva">{t("Contraseña nueva")}</label>
         <input
           id="nueva"
           name="nueva"
@@ -57,15 +55,11 @@ export default function FormularioPassword() {
           autoComplete="new-password"
           className="campo"
         />
-        <p className="text-xs mt-1" style={{ color: "var(--texto-3)" }}>
-          Mínimo 10 caracteres.
-        </p>
+        <p className="text-xs mt-1" style={{ color: "var(--texto-3)" }}>{t("Mínimo 10 caracteres.")}</p>
       </div>
 
       <div>
-        <label className="etiqueta" htmlFor="repetir">
-          Repetir la nueva
-        </label>
+        <label className="etiqueta" htmlFor="repetir">{t("Repetir la nueva")}</label>
         <input
           id="repetir"
           name="repetir"
@@ -82,9 +76,7 @@ export default function FormularioPassword() {
         </p>
       )}
       {hecho && (
-        <p className="text-sm" style={{ color: "var(--acento)" }}>
-          Contraseña cambiada. Tu sesión actual sigue abierta.
-        </p>
+        <p className="text-sm" style={{ color: "var(--acento)" }}>{t("Contraseña cambiada. Tu sesión actual sigue abierta.")}</p>
       )}
 
       <button type="submit" className="boton" disabled={guardando}>

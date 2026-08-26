@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { colorFase, ETIQUETA_FASE, type Fase } from "@/lib/dominio";
 
+import { useT } from "@/components/Idioma";
 export type ClienteSidebar = {
   id: string;
   nombre: string;
@@ -61,6 +62,7 @@ export default function Shell({
   salir: React.ReactNode;
   children: React.ReactNode;
 }) {
+  const t = useT();
   const ruta = usePathname();
   const [abierto, setAbierto] = useState(false);
   const [filtro, setFiltro] = useState("");
@@ -79,7 +81,7 @@ export default function Shell({
       {abierto && (
         <button
           type="button"
-          aria-label="Cerrar menú"
+          aria-label={t("Cerrar menú")}
           onClick={cerrar}
           className="fixed inset-0 z-30 lg:hidden"
           style={{ background: "rgba(0,0,0,.4)" }}
@@ -96,9 +98,7 @@ export default function Shell({
         }}
       >
         <div className="px-4 h-14 flex items-center shrink-0">
-          <Link href="/" onClick={cerrar} className="font-semibold tracking-tight">
-            PM Platform
-          </Link>
+          <Link href="/" onClick={cerrar} className="font-semibold tracking-tight">{t("PM Platform")}</Link>
         </div>
 
         <nav className="px-2 space-y-0.5">
@@ -118,15 +118,13 @@ export default function Shell({
           <span
             className="text-xs font-semibold uppercase tracking-wide"
             style={{ color: "var(--texto-3)" }}
-          >
-            Clientes
-          </span>
+          >{t("Clientes")}</span>
           <Link
             href="/clientes/nuevo"
             onClick={cerrar}
             className="text-sm leading-none"
             style={{ color: "var(--texto-3)" }}
-            title="Nuevo cliente"
+            title={t("Nuevo cliente")}
           >
             +
           </Link>
@@ -137,7 +135,7 @@ export default function Shell({
             <input
               value={filtro}
               onChange={(e) => setFiltro(e.target.value)}
-              placeholder="Filtrar"
+              placeholder={t("Filtrar")}
               className="campo"
               style={{ padding: "0.3rem 0.5rem", fontSize: "0.8125rem" }}
             />
@@ -153,14 +151,14 @@ export default function Shell({
                 <span
                   className="w-1.5 h-1.5 rounded-full shrink-0"
                   style={{ background: color.punto }}
-                  title={ETIQUETA_FASE[c.fase]}
+                  title={t(ETIQUETA_FASE[c.fase])}
                 />
                 <span className="truncate flex-1">{c.nombre}</span>
                 {c.abiertos > 0 && (
                   <span
                     className="text-xs px-1.5 rounded-full shrink-0"
                     style={{ background: "var(--riesgo-suave)", color: "var(--riesgo)" }}
-                    title="Asuntos abiertos"
+                    title={t("Asuntos abiertos")}
                   >
                     {c.abiertos}
                   </span>
@@ -174,9 +172,7 @@ export default function Shell({
             onClick={cerrar}
             className="block px-2.5 py-1.5 text-xs"
             style={{ color: "var(--texto-3)" }}
-          >
-            Ver todos
-          </Link>
+          >{t("Ver todos")}</Link>
         </div>
 
         <div
@@ -207,13 +203,13 @@ export default function Shell({
           <button
             type="button"
             onClick={() => setAbierto(true)}
-            aria-label="Abrir menú"
+            aria-label={t("Abrir menú")}
             className="text-lg leading-none"
             style={{ color: "var(--texto-2)" }}
           >
             ☰
           </button>
-          <span className="font-semibold tracking-tight">PM Platform</span>
+          <span className="font-semibold tracking-tight">{t("PM Platform")}</span>
         </div>
 
         <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">{children}</main>

@@ -4,6 +4,8 @@ import type { ResumenMes } from "@/lib/consultas/metricas";
 import { aISO } from "@/lib/fechas";
 import { mmss } from "@/lib/aht";
 
+import { crearTraductor } from "@/lib/i18n";
+import { leerIdioma } from "@/lib/preferencias";
 function miles(valor: number | string | null) {
   if (valor === null) return "—";
   return Number(valor).toLocaleString("es-CO", { maximumFractionDigits: 0 });
@@ -48,7 +50,7 @@ function Fila({
   );
 }
 
-export default function LineaBaseCard({
+export default async function LineaBaseCard({
   clienteId,
   base,
   mes,
@@ -57,6 +59,7 @@ export default function LineaBaseCard({
   base: LineaBase | null;
   mes: ResumenMes | null;
 }) {
+  const t = crearTraductor(await leerIdioma());
   const llamadasReales = mes?.llamadas ? Number(mes.llamadas) : null;
   const ahtRealSeg = mes?.duracion_promedio ? Number(mes.duracion_promedio) * 60 : null;
   const contencionReal = mes?.contencion_promedio ? Number(mes.contencion_promedio) : null;
@@ -79,12 +82,10 @@ export default function LineaBaseCard({
           <table className="w-full text-sm" style={{ minWidth: "30rem" }}>
             <thead>
               <tr style={{ color: "var(--texto-3)" }}>
-                <th className="text-left font-medium px-4 py-2.5">
-                  Mes en curso vs línea base
-                </th>
-                <th className="text-right font-medium px-3 py-2.5">Esperado</th>
-                <th className="text-right font-medium px-3 py-2.5">Real</th>
-                <th className="text-right font-medium px-4 py-2.5">Desvío</th>
+                <th className="text-left font-medium px-4 py-2.5">{t("Mes en curso vs línea base")}</th>
+                <th className="text-right font-medium px-3 py-2.5">{t("Esperado")}</th>
+                <th className="text-right font-medium px-3 py-2.5">{t("Real")}</th>
+                <th className="text-right font-medium px-4 py-2.5">{t("Desvío")}</th>
               </tr>
             </thead>
             <tbody>
@@ -136,9 +137,7 @@ export default function LineaBaseCard({
         <summary
           className="px-4 py-2.5 text-sm cursor-pointer select-none"
           style={{ color: "var(--texto-2)" }}
-        >
-          Línea base del partner
-        </summary>
+        >{t("Línea base del partner")}</summary>
 
         <form action={guardarLineaBase} className="px-4 pb-4 pt-1 space-y-3">
           <input type="hidden" name="cliente_id" value={clienteId} />
@@ -150,7 +149,7 @@ export default function LineaBaseCard({
 
           <div className="grid sm:grid-cols-3 gap-3">
             <div>
-              <label className="etiqueta">Volumen mensual</label>
+              <label className="etiqueta">{t("Volumen mensual")}</label>
               <input
                 name="volumen_mensual_promedio"
                 inputMode="numeric"
@@ -159,7 +158,7 @@ export default function LineaBaseCard({
               />
             </div>
             <div>
-              <label className="etiqueta">AHT promedio</label>
+              <label className="etiqueta">{t("AHT promedio")}</label>
               <input
                 name="aht_promedio_seg"
                 className="campo"
@@ -168,7 +167,7 @@ export default function LineaBaseCard({
               />
             </div>
             <div>
-              <label className="etiqueta">Meta de contención %</label>
+              <label className="etiqueta">{t("Meta de contención %")}</label>
               <input
                 name="meta_contencion_pct"
                 inputMode="decimal"
@@ -177,7 +176,7 @@ export default function LineaBaseCard({
               />
             </div>
             <div>
-              <label className="etiqueta">Concurrencia media</label>
+              <label className="etiqueta">{t("Concurrencia media")}</label>
               <input
                 name="concurrencia_promedio"
                 inputMode="numeric"
@@ -186,7 +185,7 @@ export default function LineaBaseCard({
               />
             </div>
             <div>
-              <label className="etiqueta">Concurrencia máxima</label>
+              <label className="etiqueta">{t("Concurrencia máxima")}</label>
               <input
                 name="concurrencia_maxima"
                 inputMode="numeric"
@@ -195,7 +194,7 @@ export default function LineaBaseCard({
               />
             </div>
             <div>
-              <label className="etiqueta">Fecha de entrega</label>
+              <label className="etiqueta">{t("Fecha de entrega")}</label>
               <input
                 type="date"
                 name="fecha_entrega"
@@ -204,7 +203,7 @@ export default function LineaBaseCard({
               />
             </div>
             <div className="sm:col-span-2">
-              <label className="etiqueta">Quién lo entregó</label>
+              <label className="etiqueta">{t("Quién lo entregó")}</label>
               <input
                 name="entregado_por"
                 className="campo"
@@ -213,7 +212,7 @@ export default function LineaBaseCard({
               />
             </div>
             <div>
-              <label className="etiqueta">Horario operativo</label>
+              <label className="etiqueta">{t("Horario operativo")}</label>
               <input
                 name="horario_operativo"
                 className="campo"
@@ -222,7 +221,7 @@ export default function LineaBaseCard({
               />
             </div>
             <div className="sm:col-span-3">
-              <label className="etiqueta">Notas</label>
+              <label className="etiqueta">{t("Notas")}</label>
               <textarea
                 name="notas"
                 rows={2}
@@ -236,9 +235,7 @@ export default function LineaBaseCard({
             Cambiar un valor que ya existía deja un evento en el timeline.
           </p>
 
-          <button type="submit" className="boton">
-            Guardar línea base
-          </button>
+          <button type="submit" className="boton">{t("Guardar línea base")}</button>
         </form>
       </details>
     </div>

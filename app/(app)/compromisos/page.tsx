@@ -7,6 +7,9 @@ import { Vacio } from "@/components/Seccion";
 import { ETIQUETA_LADO, ESTADOS_COMPROMISO, ETIQUETA_ESTADO_COMPROMISO } from "@/lib/dominio";
 import { textoRelativo, diasHasta, fechaCorta } from "@/lib/fechas";
 
+import { crearTraductor } from "@/lib/i18n";
+import { leerIdioma } from "@/lib/preferencias";
+import { traducirFilas } from "@/lib/traduccion";
 export const dynamic = "force-dynamic";
 
 const OPCIONES = ESTADOS_COMPROMISO.map((e) => ({
@@ -15,7 +18,9 @@ const OPCIONES = ESTADOS_COMPROMISO.map((e) => ({
 }));
 
 export default async function Compromisos() {
-  const todos = await todosLosCompromisos();
+  const t = crearTraductor(await leerIdioma());
+  const todosOriginales = await todosLosCompromisos();
+  const todos = await traducirFilas(await leerIdioma(), todosOriginales, ["descripcion"]);
   const abiertos = todos.filter((c) => c.estado === "pendiente");
   const cerrados = todos.filter((c) => c.estado !== "pendiente");
   const vencidos = abiertos.filter(
@@ -25,14 +30,14 @@ export default async function Compromisos() {
   return (
     <>
       <div className="mb-5">
-        <h1 className="text-xl font-semibold tracking-tight">Compromisos</h1>
+        <h1 className="text-xl font-semibold tracking-tight">{t("Compromisos")}</h1>
         <p className="text-sm mt-0.5" style={{ color: "var(--texto-2)" }}>
           {abiertos.length} abiertos · {vencidos.length} vencidos
         </p>
       </div>
 
       {abiertos.length === 0 ? (
-        <Vacio>Nada pendiente.</Vacio>
+        <Vacio>{t("Nada pendiente.")}</Vacio>
       ) : (
         <div className="tarjeta divide-y" style={{ borderColor: "var(--borde)" }}>
           {abiertos.map((c) => {
@@ -54,7 +59,7 @@ export default async function Compromisos() {
 
                 <span className="text-sm flex-1 min-w-0 truncate">{c.descripcion}</span>
 
-                <Pastilla>{ETIQUETA_LADO[c.lado]}</Pastilla>
+                <Pastilla>{t(ETIQUETA_LADO[c.lado])}</Pastilla>
 
                 <span
                   className="text-xs shrink-0 w-24 text-right"
