@@ -34,6 +34,17 @@ El botón del aviso de las 19:00 abre un formulario con una línea por cliente p
 Se escribe `nombre llamadas minutos contención`. Es el mismo parser determinista que el
 pegado de la web — los números no pasan por el modelo.
 
+## Ayuda dentro del propio canal
+
+Escribe **`ayuda`** en el canal y el bot explica todo: cómo registrar, cómo funcionan los
+botones, el formato del registro diario, qué avisos manda y a qué hora, y la lista de
+clientes que reconoce. También responde a `help`, `qué puedo hacer` o `cómo funciona`.
+
+Solo se activa si el mensaje es exactamente eso. *"Sura EPS: necesito ayuda con el
+whitelisting"* es una nota que hay que registrar, no alguien preguntando cómo funciona.
+
+Desde la app, en **Diagnóstico**, hay un botón para publicar la guía en el canal.
+
 ## Puesta en marcha
 
 1. **api.slack.com/apps** → Create New App → **From a manifest** → pega

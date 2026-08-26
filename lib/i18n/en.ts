@@ -214,6 +214,7 @@ export const EN: Record<string, string> = {
   "Comprobaciones en vivo contra Slack y el modelo.":
     "Live checks against Slack and the model.",
   Modelo: "Model",
+  "Enviar la guía al canal": "Send the guide to the channel",
   "Diagnóstico de integraciones": "Integrations diagnostics",
   "Últimos avisos enviados": "Last notifications sent",
   "Todavía ninguno.": "None yet.",

@@ -62,6 +62,14 @@ export async function cambiarIdioma(datos: FormData) {
   revalidatePath("/", "layout");
 }
 
+export async function enviarGuiaSlack() {
+  const { slackConfigurado } = await import("@/lib/slack/cliente");
+  if (!slackConfigurado()) throw new Error("Slack no está configurado");
+
+  const { publicarAyuda } = await import("@/lib/slack/ayuda");
+  await publicarAyuda();
+}
+
 // ---------------------------------------------------------------- cuenta
 
 export async function cambiarPassword(datos: FormData) {

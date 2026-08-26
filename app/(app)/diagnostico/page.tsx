@@ -1,5 +1,6 @@
 import { diagnosticarSlack, diagnosticarIA, type Comprobacion } from "@/lib/slack/diagnostico";
 import { sql } from "@/lib/db";
+import { enviarGuiaSlack } from "@/app/acciones";
 import { crearTraductor } from "@/lib/i18n";
 import { leerIdioma } from "@/lib/preferencias";
 
@@ -69,7 +70,14 @@ export default async function Diagnostico() {
 
       <div className="space-y-4">
         <section>
-          <h2 className="text-sm font-semibold mb-2">Slack</h2>
+          <div className="flex items-baseline justify-between mb-2">
+            <h2 className="text-sm font-semibold">Slack</h2>
+            <form action={enviarGuiaSlack}>
+              <button type="submit" className="boton-suave text-xs">
+                {t("Enviar la guía al canal")}
+              </button>
+            </form>
+          </div>
           <div className="tarjeta divide-y" style={{ borderColor: "var(--borde)" }}>
             {[...slack, ...entorno].map((c, i) => (
               <Fila key={i} c={c} />

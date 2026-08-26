@@ -1,5 +1,7 @@
 import { firmaValida, publicar, type Bloque } from "@/lib/slack/cliente";
 import { clasificar } from "@/lib/slack/clasificar";
+import { publicarAyuda } from "@/lib/slack/ayuda";
+import { pideAyuda } from "@/lib/slack/deteccion";
 import { proveedorActivo } from "@/lib/llm";
 import { sql, uno } from "@/lib/db";
 import { hoy, fechaCorta } from "@/lib/fechas";
@@ -72,6 +74,13 @@ export async function POST(peticion: Request) {
 
 async function procesar(texto: string, canal: string, ts: string, usuario?: string) {
   try {
+    // La ayuda va antes que el clasificador: preguntar cómo funciona no es una
+    // nota que haya que guardar en ningún cliente.
+    if (pideAyuda(texto)) {
+      await publicarAyuda(ts);
+      return;
+    }
+
     const propuesta = await clasificar(texto, hoy());
     if (!propuesta) return;
 
