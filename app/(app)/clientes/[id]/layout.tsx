@@ -81,17 +81,17 @@ export default async function ClienteLayout({
 
       <Pestanas
         pestanas={[
-          { href: base, etiqueta: "Resumen" },
-          { href: `${base}/timeline`, etiqueta: "Timeline", contador: conteo.eventos },
-          { href: `${base}/metricas`, etiqueta: "Métricas" },
-          { href: `${base}/hitos`, etiqueta: "Hitos", contador: conteo.hitos },
+          { href: base, etiqueta: t("Resumen") },
+          { href: `${base}/timeline`, etiqueta: t("Timeline"), contador: conteo.eventos },
+          { href: `${base}/metricas`, etiqueta: t("Métricas") },
+          { href: `${base}/hitos`, etiqueta: t("Hitos"), contador: conteo.hitos },
           {
             href: `${base}/compromisos`,
-            etiqueta: "Compromisos",
+            etiqueta: t("Compromisos"),
             contador: conteo.compromisos,
           },
-          { href: `${base}/contactos`, etiqueta: "Contactos", contador: conteo.contactos },
-          { href: `${base}/ajustes`, etiqueta: "Ajustes" },
+          { href: `${base}/contactos`, etiqueta: t("Contactos"), contador: conteo.contactos },
+          { href: `${base}/ajustes`, etiqueta: t("Ajustes") },
         ]}
       />
 

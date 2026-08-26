@@ -102,17 +102,17 @@ export default async function Resumen({ params }: { params: Promise<{ id: string
     <div className="space-y-8">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Dato
-          etiqueta="Llamadas del mes"
+          etiqueta={t("Llamadas del mes")}
           valor={miles(mes?.llamadas ?? null)}
           pie={variacion(mes?.llamadas ?? null, previo?.llamadas ?? null)}
         />
         <Dato
-          etiqueta="Minutos del mes"
+          etiqueta={t("Minutos del mes")}
           valor={miles(mes?.minutos ?? null)}
           pie={variacion(mes?.minutos ?? null, previo?.minutos ?? null)}
         />
         <Dato
-          etiqueta="Contención"
+          etiqueta={t("Contención")}
           valor={
             mes?.contencion_promedio
               ? `${Number(mes.contencion_promedio).toFixed(0)}%`
@@ -125,7 +125,7 @@ export default async function Resumen({ params }: { params: Promise<{ id: string
           }
         />
         <Dato
-          etiqueta="Asuntos abiertos"
+          etiqueta={t("Asuntos abiertos")}
           valor={String(abiertos.length)}
           color={abiertos.length > 0 ? "var(--riesgo)" : undefined}
           pie={vencidos.length > 0 ? `${vencidos.length} compromiso vencido` : undefined}

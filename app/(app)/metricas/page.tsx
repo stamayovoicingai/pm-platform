@@ -63,7 +63,7 @@ export default async function Metricas({
 
       {pendientes.length > 0 && (
         <div className="mt-10">
-          <Seccion titulo="Días incompletos" contador={pendientes.length}>
+          <Seccion titulo={t("Días incompletos")} contador={pendientes.length}>
             <div className="tarjeta divide-y" style={{ borderColor: "var(--borde)" }}>
               {pendientes.map((d) => (
                 <Link

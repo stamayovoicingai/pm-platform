@@ -72,7 +72,7 @@ export default async function Hoy() {
         </p>
       </div>
 
-      <Seccion titulo="Asuntos abiertos" contador={abiertos.length}>
+      <Seccion titulo={t("Asuntos abiertos")} contador={abiertos.length}>
         {abiertos.length === 0 ? (
           <Vacio>Nada abierto. Ninguna incidencia, bloqueo ni riesgo sin cerrar.</Vacio>
         ) : (
@@ -90,7 +90,7 @@ export default async function Hoy() {
         )}
       </Seccion>
 
-      <Seccion titulo="Hitos próximos" contador={hitos.length}>
+      <Seccion titulo={t("Hitos próximos")} contador={hitos.length}>
         {hitos.length === 0 ? (
           <Vacio>{t("Sin hitos en los próximos 30 días.")}</Vacio>
         ) : (
@@ -113,7 +113,7 @@ export default async function Hoy() {
                         <Pastilla
                           fondo="var(--oportunidad-suave)"
                           texto="var(--oportunidad)"
-                          titulo="Veces que se ha movido la fecha"
+                          titulo={t("Veces que se ha movido la fecha")}
                         >
                           movido {h.veces_movido}×
                         </Pastilla>
@@ -136,7 +136,7 @@ export default async function Hoy() {
         )}
       </Seccion>
 
-      <Seccion titulo="Compromisos abiertos" contador={compromisos.length}>
+      <Seccion titulo={t("Compromisos abiertos")} contador={compromisos.length}>
         {compromisos.length === 0 ? (
           <Vacio>{t("Nada pendiente esta semana.")}</Vacio>
         ) : (
@@ -171,7 +171,7 @@ export default async function Hoy() {
         )}
       </Seccion>
 
-      <Seccion titulo="Clientes sin novedad" contador={silencio.length}>
+      <Seccion titulo={t("Clientes sin novedad")} contador={silencio.length}>
         {silencio.length === 0 ? (
           <Vacio>{t("Todos los clientes tienen registro reciente.")}</Vacio>
         ) : (
@@ -195,7 +195,7 @@ export default async function Hoy() {
         )}
       </Seccion>
 
-      <Seccion titulo="Últimos registros">
+      <Seccion titulo={t("Últimos registros")}>
         {eventos.length === 0 ? (
           <Vacio>{t("Todavía no has registrado nada.")}</Vacio>
         ) : (

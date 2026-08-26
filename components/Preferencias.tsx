@@ -2,11 +2,13 @@ import { cambiarTema, cambiarIdioma } from "@/app/acciones";
 import { crearTraductor } from "@/lib/i18n";
 import { leerTema, leerIdioma, TEMAS, IDIOMAS, type Tema, type Idioma } from "@/lib/preferencias";
 
-const NOMBRE_TEMA: Record<Tema, string> = {
-  sistema: "Según el sistema",
-  claro: "Claro",
-  oscuro: "Oscuro",
-};
+function nombresTema(t: (s: string) => string): Record<Tema, string> {
+  return {
+    sistema: t("Según el sistema"),
+    claro: t("Claro"),
+    oscuro: t("Oscuro"),
+  };
+}
 
 const NOMBRE_IDIOMA: Record<Idioma, string> = {
   es: "Español",
@@ -64,7 +66,7 @@ export default async function Preferencias() {
         <Opciones
           valores={TEMAS}
           actual={tema}
-          nombres={NOMBRE_TEMA}
+          nombres={nombresTema(t)}
           campo="tema"
           accion={cambiarTema}
         />

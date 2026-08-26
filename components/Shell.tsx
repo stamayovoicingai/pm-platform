@@ -109,7 +109,7 @@ export default function Shell({
               activo={s.href === "/" ? ruta === "/" : ruta.startsWith(s.href)}
               onNavegar={cerrar}
             >
-              {s.etiqueta}
+              {t(s.etiqueta)}
             </Item>
           ))}
         </nav>

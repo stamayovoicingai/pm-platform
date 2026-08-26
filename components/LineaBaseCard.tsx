@@ -91,7 +91,7 @@ export default async function LineaBaseCard({
             <tbody>
               {base.volumen_mensual_promedio !== null && (
                 <Fila
-                  concepto="Volumen mensual"
+                  concepto={t("Volumen mensual")}
                   esperado={miles(base.volumen_mensual_promedio)}
                   real={miles(llamadasReales)}
                   desvio={desvio(llamadasReales, base.volumen_mensual_promedio)}
@@ -108,7 +108,7 @@ export default async function LineaBaseCard({
               )}
               {base.meta_contencion_pct !== null && (
                 <Fila
-                  concepto="Contención"
+                  concepto={t("Contención")}
                   esperado={`${Number(base.meta_contencion_pct).toFixed(0)}%`}
                   real={contencionReal === null ? "—" : `${contencionReal.toFixed(0)}%`}
                   desvio={desvio(contencionReal, Number(base.meta_contencion_pct))}
