@@ -56,16 +56,13 @@ export default async function BloqueHito({
       </div>
 
       <div
-        className="px-4 py-2 flex flex-wrap items-center gap-2"
+        className="px-4 py-2 flex flex-wrap items-start gap-2"
         style={{ borderTop: "1px solid var(--borde)" }}
       >
-        <details className="grow">
-          <summary
-            className="text-xs cursor-pointer select-none"
-            style={{ color: "var(--texto-2)" }}
-          >
-            Mover fecha
-            {historial.length > 0 && ` · ${historial.length} cambio${historial.length === 1 ? "" : "s"}`}
+        <details className="accion">
+          <summary>
+            📅 {t("Mover fecha")}
+            {historial.length > 0 && ` · ${historial.length}`}
           </summary>
 
           <form action={moverFechaHito} className="mt-3 space-y-2">
@@ -107,13 +104,8 @@ export default async function BloqueHito({
           )}
         </details>
 
-        <details className="grow">
-          <summary
-            className="text-xs cursor-pointer select-none"
-            style={{ color: "var(--texto-3)" }}
-          >
-            {t("Editar")}
-          </summary>
+        <details className="accion accion-peligro">
+          <summary>✎ {t("Editar")}</summary>
 
           <form action={editarHito} className="mt-3 space-y-2">
             <input type="hidden" name="id" value={hito.id} />
@@ -157,7 +149,7 @@ export default async function BloqueHito({
           </form>
         </details>
 
-        <form action={cambiarEstadoHito} className="flex items-center gap-1.5 shrink-0">
+        <form action={cambiarEstadoHito} className="flex items-center gap-1.5 shrink-0 ml-auto">
           <input type="hidden" name="id" value={hito.id} />
           <input type="hidden" name="cliente_id" value={hito.cliente_id} />
           <select

@@ -139,8 +139,9 @@ export default async function EventoLinea({
             </ul>
           )}
 
+          <div className="barra-acciones">
           {!seguible && (
-            <form action={activarSeguimiento} className="mt-2">
+            <form action={activarSeguimiento}>
               <input type="hidden" name="evento_id" value={evento.id} />
               <input type="hidden" name="cliente_id" value={evento.cliente_id} />
               <button
@@ -152,13 +153,8 @@ export default async function EventoLinea({
             </form>
           )}
 
-          <details className="mt-2">
-            <summary
-              className="text-xs cursor-pointer select-none inline-block"
-              style={{ color: "var(--texto-3)" }}
-            >
-              {t("Editar")}
-            </summary>
+          <details className="accion accion-peligro">
+            <summary>✎ {t("Editar")}</summary>
 
             <form action={editarEvento} className="mt-2 space-y-2">
               <input type="hidden" name="id" value={evento.id} />
@@ -216,11 +212,8 @@ export default async function EventoLinea({
             </form>
           </details>
 
-          <details className="mt-2">
-            <summary
-              className="text-xs cursor-pointer select-none inline-block"
-              style={{ color: "var(--texto-3)" }}
-            >{t("Adjuntar archivo")}</summary>
+          <details className="accion">
+            <summary>📎 {t("Adjuntar archivo")}</summary>
             <form action={subirAdjunto} className="mt-2 flex flex-wrap items-center gap-2">
               <input type="hidden" name="evento_id" value={evento.id} />
               <input type="hidden" name="cliente_id" value={evento.cliente_id} />
@@ -240,11 +233,8 @@ export default async function EventoLinea({
           </details>
 
           {seguible && (
-            <details className="mt-2" open={actualizaciones.length > 0 && !cerrado}>
-              <summary
-                className="text-xs cursor-pointer select-none inline-block"
-                style={{ color: "var(--texto-2)" }}
-              >
+            <details className="accion" open={actualizaciones.length > 0 && !cerrado}>
+              <summary>
                 {actualizaciones.length === 0
                   ? "Actualizar"
                   : `${actualizaciones.length} actualización${
@@ -323,6 +313,7 @@ export default async function EventoLinea({
               </form>
             </details>
           )}
+          </div>
         </div>
       </div>
     </div>

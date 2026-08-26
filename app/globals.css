@@ -177,3 +177,58 @@ body {
   letter-spacing: 0.02em;
   white-space: nowrap;
 }
+
+/* ---------------------------------------------------------------- acciones */
+
+/* Acciones de una fila: parecen botones y van en una sola línea, pero al
+   abrirse ocupan todo el ancho para que quepa el formulario. Sin JavaScript:
+   details[open] hace el trabajo. */
+.accion > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--texto-2);
+  background: var(--superficie-2);
+  border: 1px solid var(--borde);
+  border-radius: 0.4rem;
+  padding: 0.2rem 0.55rem;
+}
+
+.accion > summary::-webkit-details-marker {
+  display: none;
+}
+
+.accion > summary:hover {
+  background: var(--superficie);
+  color: var(--texto);
+  border-color: var(--borde-fuerte);
+}
+
+.accion[open] {
+  width: 100%;
+}
+
+.accion[open] > summary {
+  background: var(--acento-suave);
+  color: var(--acento);
+  border-color: transparent;
+  margin-bottom: 0.6rem;
+}
+
+.accion-peligro[open] > summary {
+  background: var(--riesgo-suave);
+  color: var(--riesgo);
+}
+
+.barra-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+}

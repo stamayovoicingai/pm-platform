@@ -230,6 +230,7 @@ export const EN: Record<string, string> = {
 
   // Edición
   Editar: "Edit",
+  "Mover fecha": "Move date",
   Borrar: "Delete",
   "¿Seguro?": "Sure?",
   "Confirmar borrado": "Confirm delete",
