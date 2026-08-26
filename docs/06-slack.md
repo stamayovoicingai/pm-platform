@@ -15,6 +15,37 @@
 Las horas salen de la tabla `ajuste`, clave `notificaciones`. Cambiarlas ahí las cambia
 sin desplegar.
 
+**Preguntar cómo va un cliente**
+
+> cómo va Colsubsidio
+
+Devuelve lo que tiene abierto, sus compromisos y sus próximos hitos, **numerados**.
+También sirven `abiertos de …`, `estado de …`, `qué tiene …` y, sin nombrar cliente,
+`qué tengo pendiente`.
+
+Se exige una palabra de consulta además del nombre. *"Colsubsidio no ha podido salir por
+temas legales"* menciona al cliente pero es una nota que registrar, no una pregunta.
+
+**Actuar sobre esa lista, respondiendo en el hilo**
+
+| Escribes | Pasa |
+|---|---|
+| `el 1 ya lo resolvieron, TP habilitó la IP` | Añade la nota y lo cierra como resuelto |
+| `el 2 sigue igual, esperando a legal` | Añade la nota y lo deja abierto |
+| `cierra el 2` | Lo cierra sin nota |
+| `borra el 3` | Pide confirmación con un botón aparte |
+
+Los números son los de **esa** lista, aunque hayan pasado horas: se guarda tal como se
+mostró. Si la lista tenía tres elementos y escribes `cierra el 9`, te lo dice en vez de
+adivinar.
+
+El bot solo actúa dentro de hilos donde él mismo mostró una lista. En cualquier otro hilo
+calla, porque responder a todo convertiría cualquier conversación entre personas en
+registros.
+
+Cerrar es fácil a propósito y borrar no lo es. Un bloqueo resuelto no se borra: se cierra
+con una nota de qué pasó, y eso es justo lo que hace valioso el histórico.
+
 **Registro desde el canal**
 
 Escribes en el canal como se lo contarías a alguien:

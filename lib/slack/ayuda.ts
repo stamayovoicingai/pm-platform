@@ -38,14 +38,24 @@ export async function publicarAyuda(hiloTs?: string) {
     ),
 
     seccion(
-      "*2 · Cerrar lo que sigue abierto*\n" +
-        "Una incidencia o un bloqueo quedan abiertos hasta que los cierras. Para " +
-        "actualizarlos, entra a la ficha del cliente en la app: cada uno tiene un hilo " +
-        "donde añades qué pasó y cambias el estado a en curso, resuelto o descartado.",
+      "*2 · Preguntar cómo va un cliente*\n" +
+        `> cómo va ${ejemplo}\n\n` +
+        "Te devuelvo lo que tiene abierto, sus compromisos y sus próximos hitos, " +
+        "*numerados*. También sirve `abiertos de …`, `estado de …` o, sin cliente, " +
+        "`qué tengo pendiente`.",
     ),
 
     seccion(
-      "*3 · Registrar el día*\n" +
+      "*3 · Actuar sobre esa lista, respondiendo en el hilo*\n" +
+        "> el 1 ya lo resolvieron, TP habilitó la IP\n" +
+        "> cierra el 2\n" +
+        "> borra el 3\n\n" +
+        "La primera forma añade la nota y lo cierra. Los números son los de *esa* " +
+        "lista, aunque hayan pasado horas. Borrar siempre pide confirmación aparte.",
+    ),
+
+    seccion(
+      "*4 · Registrar el día*\n" +
         "A las 19:00 te aviso qué clientes faltan, con un botón que abre el formulario. " +
         "Una línea por cliente:\n" +
         "```\n" +
@@ -61,7 +71,7 @@ export async function publicarAyuda(hiloTs?: string) {
     ),
 
     seccion(
-      "*4 · Lo que te voy a mandar sin que lo pidas*\n" +
+      "*5 · Lo que te voy a mandar sin que lo pidas*\n" +
         "• *09:00* — hitos a 3 días, compromisos vencidos o que vencen, y lo abierto que sea grave\n" +
         "• *19:00* — qué falta por registrar del día\n" +
         "• *21:30* — solo si no registraste nada en todo el día\n" +

@@ -3,6 +3,7 @@ import { sql, uno, enTransaccion } from "@/lib/db";
 import { metricasDelDia } from "@/lib/consultas/metricas";
 import { guardarDiaMetricas } from "@/lib/metricasGuardar";
 import { interpretarBloque } from "@/lib/metricasTexto";
+import { borrarItem } from "@/lib/slack/conversacion";
 import { hoy, fechaCorta } from "@/lib/fechas";
 import type { Propuesta } from "@/lib/slack/clasificar";
 
@@ -56,6 +57,11 @@ export async function POST(peticion: Request) {
       void resolver(accion.value, true, hilo);
     } else if (accion.action_id === "descartar_propuesta" && accion.value) {
       void resolver(accion.value, false, hilo);
+    } else if (accion.action_id === "confirmar_borrado" && accion.value) {
+      const [hiloConv, n] = accion.value.split("|");
+      void borrarItem(hiloConv, Number(n));
+    } else if (accion.action_id === "cancelar_borrado") {
+      void publicar("Cancelado, no se borró nada.", undefined, hilo);
     }
   }
 

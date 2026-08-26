@@ -2,6 +2,12 @@ import { firmaValida, publicar, type Bloque } from "@/lib/slack/cliente";
 import { clasificar } from "@/lib/slack/clasificar";
 import { publicarAyuda } from "@/lib/slack/ayuda";
 import { pideAyuda } from "@/lib/slack/deteccion";
+import { interpretarConsulta, interpretarAccion } from "@/lib/slack/interpretar";
+import {
+  responderConsulta,
+  ejecutarAccion,
+  itemsDelHilo,
+} from "@/lib/slack/conversacion";
 import { proveedorActivo } from "@/lib/llm";
 import { sql, uno } from "@/lib/db";
 import { hoy, fechaCorta } from "@/lib/fechas";
@@ -54,15 +60,20 @@ export async function POST(peticion: Request) {
     evento?.type === "message" &&
     !evento.bot_id &&
     !evento.subtype &&
-    !evento.thread_ts &&
     Boolean(evento.text?.trim());
 
   // Slack reintenta si no respondemos en tres segundos, y clasificar tarda más.
   // Se responde ya y el trabajo sigue: el servidor es un proceso vivo, no una
   // función que muere al devolver.
   if (esMensajeDePersona) {
-    console.log(`Slack: mensaje recibido en ${evento!.channel}, clasificando…`);
-    void procesar(evento!.text!, evento!.channel!, evento!.ts!, evento!.user);
+    console.log(`Slack: mensaje recibido en ${evento!.channel}`);
+    void procesar(
+      evento!.text!,
+      evento!.channel!,
+      evento!.ts!,
+      evento!.user,
+      evento!.thread_ts,
+    );
   } else if (evento) {
     console.log(
       `Slack: evento ${evento.type}${evento.subtype ? `/${evento.subtype}` : ""} ignorado`,
@@ -72,12 +83,40 @@ export async function POST(peticion: Request) {
   return new Response("", { status: 200 });
 }
 
-async function procesar(texto: string, canal: string, ts: string, usuario?: string) {
+async function procesar(
+  texto: string,
+  canal: string,
+  ts: string,
+  usuario?: string,
+  hiloTs?: string,
+) {
   try {
+    // Dentro de un hilo solo se actúa si es un hilo donde el bot mostró una
+    // lista. En cualquier otro, callar: responder a todo convertiría cualquier
+    // conversación entre personas en registros.
+    if (hiloTs) {
+      const items = await itemsDelHilo(hiloTs);
+      if (!items) return;
+
+      const accion = interpretarAccion(texto);
+      if (accion) await ejecutarAccion(accion, hiloTs);
+      return;
+    }
+
     // La ayuda va antes que el clasificador: preguntar cómo funciona no es una
     // nota que haya que guardar en ningún cliente.
     if (pideAyuda(texto)) {
       await publicarAyuda(ts);
+      return;
+    }
+
+    const clientes = await sql<{ id: string; nombre: string }>(
+      "select id, nombre from cliente where not archivado order by nombre",
+    );
+
+    const consulta = interpretarConsulta(texto, clientes);
+    if (consulta) {
+      await responderConsulta(consulta, canal, ts);
       return;
     }
 
