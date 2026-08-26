@@ -1,7 +1,9 @@
 # Pegar en api.slack.com/apps → Create New App → From a manifest.
 #
-# Si tu canal es privado, cambia channels:history por groups:history y
-# message.channels por message.groups. Con canal público, déjalo tal cual.
+# Incluye los permisos y eventos de canales públicos Y privados. Los canales
+# privados creados desde 2018 también tienen ID que empieza por C, así que no
+# hay forma fiable de saber cuál es el tuyo mirando el ID: se piden los dos y
+# se acabó el problema.
 #
 # Ajusta el dominio si cambias el de la app.
 display_information:
@@ -19,14 +21,17 @@ oauth_config:
     bot:
       # Publicar los avisos y las respuestas en hilo
       - chat:write
-      # Leer los mensajes del canal para poder clasificarlos
+      # Leer los mensajes del canal para poder clasificarlos.
+      # channels:* es para canales públicos, groups:* para privados.
       - channels:history
+      - groups:history
 
 settings:
   event_subscriptions:
     request_url: https://n8n-pm-app.hr3und.easypanel.host/api/slack/eventos
     bot_events:
       - message.channels
+      - message.groups
   interactivity:
     is_enabled: true
     request_url: https://n8n-pm-app.hr3und.easypanel.host/api/slack/interactivo

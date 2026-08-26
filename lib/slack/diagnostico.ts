@@ -67,18 +67,25 @@ export async function diagnosticarSlack(): Promise<Comprobacion[]> {
     return salida;
   }
 
-  const historial = scopes.filter((s) => s.endsWith(":history"));
+  const publico = scopes.includes("channels:history");
+  const privado = scopes.includes("groups:history");
+  const ambos = publico && privado;
+
   salida.push({
     nombre: "Permisos concedidos",
     estado:
-      SCOPES_NECESARIOS.every((s) => scopes.includes(s)) && historial.length > 0
-        ? "ok"
+      SCOPES_NECESARIOS.every((s) => scopes.includes(s)) && (publico || privado)
+        ? ambos
+          ? "ok"
+          : "aviso"
         : "fallo",
     detalle:
       scopes.join(", ") +
-      (historial.length === 0
-        ? " — falta un scope :history. Añádelo y REINSTALA la app: los scopes nuevos no se conceden a una instalación existente."
-        : ""),
+      (!publico && !privado
+        ? " — falta un scope :history. Añádelo y REINSTALA la app: los permisos nuevos no se conceden a una instalación existente."
+        : ambos
+          ? ""
+          : ` — solo cubre canales ${publico ? "públicos" : "privados"}. Si el canal es del otro tipo, no llegará ningún mensaje.`),
   });
 
   if (!canal) {
@@ -111,7 +118,11 @@ export async function diagnosticarSlack(): Promise<Comprobacion[]> {
         channel_not_found:
           "El ID no existe o el canal es privado y el bot no está invitado. " +
           "Con canal privado hacen falta groups:history y el evento message.groups.",
-        missing_scope: "Falta channels:history. Añádelo y REINSTALA la app.",
+        missing_scope:
+          "El canal es PRIVADO. channels:history solo sirve para canales públicos; " +
+          "para uno privado hacen falta groups:history y el evento message.groups. " +
+          "Los canales privados creados desde 2018 también tienen ID que empieza por C, " +
+          "así que el prefijo no lo distingue. Añade ambos y REINSTALA la app.",
       };
       salida.push({
         nombre: "Lectura del canal",
