@@ -176,6 +176,42 @@ export async function archivarCliente(datos: FormData) {
   revalidatePath(`/clientes/${id}`);
 }
 
+export async function borrarLineaBase(datos: FormData) {
+  const clienteId = z.uuid().parse(campo(datos, "cliente_id"));
+  await sql("delete from linea_base where id = $1", [clienteId]);
+  revalidatePath(`/clientes/${clienteId}/metricas`);
+}
+
+/**
+ * Borrado definitivo de un cliente, con todo lo que cuelga de él.
+ *
+ * Se exige escribir el nombre exacto y no basta con confirmar: archivar ya
+ * cubre el caso de "no quiero verlo más", así que quien llega aquí quiere
+ * destruir datos y debe demostrarlo.
+ */
+export async function borrarCliente(datos: FormData) {
+  const id = z.uuid().parse(campo(datos, "id"));
+  const confirmacion = campo(datos, "confirmacion").trim();
+
+  const cliente = await uno<{ nombre: string }>(
+    "select nombre from cliente where id = $1",
+    [id],
+  );
+  if (!cliente) throw new Error("Cliente no encontrado");
+
+  if (confirmacion !== cliente.nombre) {
+    throw new Error(
+      `Para borrarlo, escribe exactamente su nombre: ${cliente.nombre}`,
+    );
+  }
+
+  await sql("delete from cliente where id = $1", [id]);
+
+  revalidatePath("/clientes");
+  revalidatePath("/", "layout");
+  redirect("/clientes");
+}
+
 // ---------------------------------------------------------------- eventos
 
 const EsquemaEvento = z.object({

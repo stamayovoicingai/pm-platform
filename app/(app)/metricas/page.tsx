@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { metricasDelDia, diasPendientes } from "@/lib/consultas/metricas";
 import CapturaMetricas from "@/components/CapturaMetricas";
+import BotonBorrar from "@/components/BotonBorrar";
+import { borrarMetricaDia } from "@/app/acciones";
 import { Seccion, Vacio } from "@/components/Seccion";
 import { hoy, fechaLarga, fechaCorta, textoRelativo } from "@/lib/fechas";
 
@@ -28,6 +30,7 @@ export default async function Metricas({
     diasPendientes(14),
   ]);
 
+  const registrados = clientes.filter((c) => c.fecha !== null);
   const esHoy = fecha === hoy();
 
   return (
@@ -59,6 +62,37 @@ export default async function Metricas({
         </Vacio>
       ) : (
         <CapturaMetricas fecha={fecha} clientes={clientes} />
+      )}
+
+      {registrados.length > 0 && (
+        <div className="mt-8">
+          <Seccion titulo="Días ya registrados" contador={registrados.length}>
+            <div className="tarjeta divide-y" style={{ borderColor: "var(--borde)" }}>
+              {registrados.map((c) => (
+                <div
+                  key={c.cliente_id}
+                  className="flex items-center justify-between gap-3 px-4 py-2.5"
+                  style={{ borderColor: "var(--borde)" }}
+                >
+                  <span className="text-sm">{c.cliente_nombre}</span>
+                  <span className="text-xs flex-1 text-right" style={{ color: "var(--texto-3)" }}>
+                    {c.sin_actividad
+                      ? t("Sin actividad")
+                      : `${Number(c.llamadas_totales ?? 0).toLocaleString("es-CO")} llamadas`}
+                  </span>
+                  <form action={borrarMetricaDia} className="shrink-0">
+                    <input type="hidden" name="cliente_id" value={c.cliente_id} />
+                    <input type="hidden" name="fecha" value={fecha} />
+                    <BotonBorrar
+                      etiqueta={t("Borrar el día")}
+                      confirmacion={t("Confirmar borrado")}
+                    />
+                  </form>
+                </div>
+              ))}
+            </div>
+          </Seccion>
+        </div>
       )}
 
       {pendientes.length > 0 && (

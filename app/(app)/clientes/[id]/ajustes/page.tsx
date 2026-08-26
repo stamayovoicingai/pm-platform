@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { obtenerCliente, listarPartners } from "@/lib/consultas/clientes";
-import { actualizarCliente, archivarCliente } from "@/app/acciones";
+import { actualizarCliente, archivarCliente, borrarCliente } from "@/app/acciones";
+import BotonBorrar from "@/components/BotonBorrar";
+import { sql } from "@/lib/db";
 import {
   FASES,
   ESTADOS_CLIENTE,
@@ -22,6 +24,23 @@ export default async function AjustesCliente({
   const { id } = await params;
   const [cliente, partners] = await Promise.all([obtenerCliente(id), listarPartners()]);
   if (!cliente) notFound();
+
+  const [conteo] = await sql<{
+    eventos: number;
+    hitos: number;
+    compromisos: number;
+    metricas: number;
+    adjuntos: number;
+  }>(
+    `select
+       (select count(*) from evento where cliente_id = $1)::int as eventos,
+       (select count(*) from hito where cliente_id = $1)::int as hitos,
+       (select count(*) from compromiso where cliente_id = $1)::int as compromisos,
+       (select count(*) from metrica_dia where cliente_id = $1)::int as metricas,
+       (select count(*) from adjunto a join evento e on e.id = a.evento_id
+         where e.cliente_id = $1)::int as adjuntos`,
+    [id],
+  );
 
   return (
     <div className="max-w-2xl space-y-4">
@@ -106,6 +125,58 @@ export default async function AjustesCliente({
           {cliente.archivado ? "Reactivar" : "Archivar"}
         </button>
       </form>
+
+      <details className="tarjeta">
+        <summary
+          className="px-5 py-4 text-sm cursor-pointer select-none"
+          style={{ color: "var(--riesgo)" }}
+        >
+          {t("Borrar definitivamente este cliente")}
+        </summary>
+
+        <div className="px-5 pb-5 space-y-3">
+          <p className="text-sm" style={{ color: "var(--texto-2)" }}>
+            {t("Se borra también, y no hay vuelta atrás:")}
+          </p>
+          <ul className="text-sm space-y-0.5" style={{ color: "var(--texto-2)" }}>
+            {(
+              [
+                [conteo.eventos, "registro", "registros", t("y sus actualizaciones")],
+                [conteo.adjuntos, "archivo adjunto", "archivos adjuntos", ""],
+                [conteo.hitos, "hito", "hitos", t("y su historial de fechas")],
+                [conteo.compromisos, "compromiso", "compromisos", ""],
+                [conteo.metricas, "día de métricas", "días de métricas", ""],
+              ] as [number, string, string, string][]
+            ).map(([n, singular, plural, cola]) => (
+              <li key={singular}>
+                · {n} {t(n === 1 ? singular : plural)} {cola}
+              </li>
+            ))}
+          </ul>
+          <p className="text-sm" style={{ color: "var(--texto-2)" }}>
+            {t("Si solo quieres dejar de verlo, archívalo: no se pierde nada.")}
+          </p>
+
+          <form action={borrarCliente} className="space-y-2">
+            <input type="hidden" name="id" value={cliente.id} />
+            <div>
+              <label className="etiqueta">
+                {t("Escribe el nombre exacto para confirmar")}
+              </label>
+              <input
+                name="confirmacion"
+                required
+                className="campo"
+                placeholder={cliente.nombre}
+              />
+            </div>
+            <BotonBorrar
+              etiqueta={t("Borrar definitivamente")}
+              confirmacion={t("Confirmar borrado")}
+            />
+          </form>
+        </div>
+      </details>
     </div>
   );
 }

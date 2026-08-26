@@ -1,4 +1,11 @@
-import { guardarLineaBase } from "@/app/acciones";
+import {
+  guardarObjetivoMes,
+  guardarMetricaMes,
+  borrarMetricaMes,
+  guardarLineaBase,
+  borrarLineaBase,
+} from "@/app/acciones";
+import BotonBorrar from "./BotonBorrar";
 import type { LineaBase } from "@/lib/consultas/lineaBase";
 import type { ResumenMes } from "@/lib/consultas/metricas";
 import { aISO } from "@/lib/fechas";
@@ -237,6 +244,18 @@ export default async function LineaBaseCard({
 
           <button type="submit" className="boton">{t("Guardar línea base")}</button>
         </form>
+
+        {base && (
+          <div className="px-4 pb-4">
+            <form action={borrarLineaBase}>
+              <input type="hidden" name="cliente_id" value={clienteId} />
+              <BotonBorrar
+                etiqueta={t("Borrar la línea base")}
+                confirmacion={t("Confirmar borrado")}
+              />
+            </form>
+          </div>
+        )}
       </details>
     </div>
   );

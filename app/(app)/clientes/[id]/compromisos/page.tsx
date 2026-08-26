@@ -143,7 +143,11 @@ export default async function CompromisosCliente({
                       </div>
                       <div>
                         <label className="etiqueta">{t("Responsable")}</label>
-                        <select name="responsable_id" className="campo" defaultValue="">
+                        <select
+                          name="responsable_id"
+                          className="campo"
+                          defaultValue={c.responsable_id ?? ""}
+                        >
                           <option value="">{t("Sin asignar")}</option>
                           {contactos.map((ct) => (
                             <option key={ct.id} value={ct.id}>

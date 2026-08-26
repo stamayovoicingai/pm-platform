@@ -7,6 +7,7 @@ export type CompromisoFila = {
   cliente_id: string;
   cliente_nombre: string;
   descripcion: string;
+  responsable_id: string | null;
   responsable_nombre: string | null;
   lado: Lado;
   fecha_limite: string | null;
