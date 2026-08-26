@@ -15,6 +15,7 @@ import { textoRelativo, diasHasta, aISO } from "@/lib/fechas";
 import { crearTraductor } from "@/lib/i18n";
 import { leerIdioma } from "@/lib/preferencias";
 import { traducirFilas } from "@/lib/traduccion";
+import Modal, { FormularioModal } from "@/components/Modal";
 export const dynamic = "force-dynamic";
 
 export default async function CompromisosCliente({
@@ -35,12 +36,15 @@ export default async function CompromisosCliente({
 
   return (
     <>
-      <details className="tarjeta mb-4">
-        <summary
-          className="px-4 py-2.5 text-sm cursor-pointer select-none"
-          style={{ color: "var(--texto-2)" }}
-        >{t("Añadir compromiso")}</summary>
-        <form action={crearCompromiso} className="px-4 pb-4 pt-1 space-y-3">
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <h2 className="titulo-seccion">{t("Compromisos")}</h2>
+        <Modal
+          etiqueta={t("Añadir compromiso")}
+          titulo={t("Añadir compromiso")}
+          descripcion={t("Algo que alguien queda en hacer, con fecha.")}
+          variante="principal"
+        >
+          <FormularioModal accion={crearCompromiso}>
           <input type="hidden" name="cliente_id" value={id} />
           <div>
             <label className="etiqueta">{t("Qué se comprometió")}</label>
@@ -79,11 +83,15 @@ export default async function CompromisosCliente({
             </div>
           </div>
           <button type="submit" className="boton">{t("Añadir compromiso")}</button>
-        </form>
-      </details>
+        </FormularioModal>
+        </Modal>
+      </div>
+
 
       {abiertos.length === 0 ? (
-        <Vacio>{t("Sin compromisos abiertos.")}</Vacio>
+        <Vacio icono="check">
+          {t("Sin compromisos abiertos. Añade uno cuando alguien quede en hacer algo.")}
+        </Vacio>
       ) : (
         <div className="tarjeta divide-y" style={{ borderColor: "var(--borde)" }}>
           {abiertos.map((c) => {

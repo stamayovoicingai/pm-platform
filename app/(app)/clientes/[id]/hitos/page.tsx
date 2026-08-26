@@ -7,6 +7,7 @@ import { TIPOS_HITO, ETIQUETA_HITO } from "@/lib/dominio";
 import { crearTraductor } from "@/lib/i18n";
 import { leerIdioma } from "@/lib/preferencias";
 import { traducirFilas } from "@/lib/traduccion";
+import Modal, { FormularioModal } from "@/components/Modal";
 export const dynamic = "force-dynamic";
 
 export default async function HitosCliente({ params }: { params: Promise<{ id: string }> }) {
@@ -24,12 +25,15 @@ export default async function HitosCliente({ params }: { params: Promise<{ id: s
 
   return (
     <>
-      <details className="tarjeta mb-4">
-        <summary
-          className="px-4 py-2.5 text-sm cursor-pointer select-none"
-          style={{ color: "var(--texto-2)" }}
-        >{t("Añadir hito")}</summary>
-        <form action={crearHito} className="px-4 pb-4 pt-1 space-y-3">
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <h2 className="titulo-seccion">{t("Hitos")}</h2>
+        <Modal
+          etiqueta={t("Añadir hito")}
+          titulo={t("Añadir hito")}
+          descripcion={t("Una fecha comprometida del proyecto.")}
+          variante="principal"
+        >
+          <FormularioModal accion={crearHito}>
           <input type="hidden" name="cliente_id" value={id} />
           <div className="grid sm:grid-cols-[1fr_11rem_9rem] gap-3">
             <div>
@@ -56,11 +60,15 @@ export default async function HitosCliente({ params }: { params: Promise<{ id: s
             <input name="notas" className="campo" />
           </div>
           <button type="submit" className="boton">{t("Añadir hito")}</button>
-        </form>
-      </details>
+        </FormularioModal>
+        </Modal>
+      </div>
+
 
       {hitos.length === 0 ? (
-        <Vacio>{t("Sin hitos definidos.")}</Vacio>
+        <Vacio icono="calendario">
+          {t("Sin hitos. Añade la fecha de salida para que aparezca en Hoy y te avise.")}
+        </Vacio>
       ) : (
         <div className="space-y-2">
           {hitos.map((h) => (

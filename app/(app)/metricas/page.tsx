@@ -36,7 +36,8 @@ export default async function Metricas({
   return (
     <>
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("Métricas")}</h1>
+        <p className="eyebrow mb-1">{t("Registro diario")}</p>
+        <h1 className="titulo-pagina">{t("Métricas")}</h1>
         <p className="text-sm mt-1" style={{ color: "var(--texto-2)" }}>
           {fechaLarga(fecha)}
           {!esHoy && ` · ${textoRelativo(fecha)}`}

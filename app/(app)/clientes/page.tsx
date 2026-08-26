@@ -44,7 +44,8 @@ export default async function Clientes({
     <>
       <div className="flex items-start justify-between gap-4 mb-4">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">{t("Clientes")}</h1>
+          <p className="eyebrow mb-1">{t("Cartera")}</p>
+          <h1 className="titulo-pagina">{t("Clientes")}</h1>
           <p className="text-sm mt-0.5" style={{ color: "var(--texto-2)" }}>
             {clientes.length} activo{clientes.length === 1 ? "" : "s"}
           </p>
@@ -84,15 +85,15 @@ export default async function Clientes({
         </Vacio>
       ) : (
         <div className="tarjeta overflow-x-auto">
-          <table className="w-full text-sm" style={{ minWidth: "48rem" }}>
+          <table className="tabla" style={{ minWidth: "48rem" }}>
             <thead>
-              <tr style={{ color: "var(--texto-3)" }}>
-                <th className="text-left font-medium px-3 py-2">{t("Cliente")}</th>
-                <th className="text-left font-medium px-3 py-2">{t("Fase")}</th>
-                <th className="text-right font-medium px-3 py-2">{t("Llamadas mes")}</th>
-                <th className="text-left font-medium px-3 py-2">{t("Próximo hito")}</th>
-                <th className="text-right font-medium px-3 py-2">{t("Abiertos")}</th>
-                <th className="text-right font-medium px-3 py-2">{t("Último registro")}</th>
+              <tr>
+                <th>{t("Cliente")}</th>
+                <th>{t("Fase")}</th>
+                <th className="derecha">{t("Llamadas mes")}</th>
+                <th>{t("Próximo hito")}</th>
+                <th className="derecha">{t("Abiertos")}</th>
+                <th className="derecha">{t("Último registro")}</th>
               </tr>
             </thead>
             <tbody>
@@ -100,12 +101,8 @@ export default async function Clientes({
                 const color = colorFase(c.fase);
                 const diasHito = diasHasta(c.proximo_hito_fecha);
                 return (
-                  <tr
-                    key={c.id}
-                    className="hover:bg-[var(--superficie-2)] transition-colors"
-                    style={{ borderTop: "1px solid var(--borde)" }}
-                  >
-                    <td className="px-3 py-2">
+                  <tr key={c.id}>
+                    <td>
                       <Link href={`/clientes/${c.id}`} className="flex items-center gap-2">
                         <span
                           className="w-1.5 h-1.5 rounded-full shrink-0"
@@ -114,16 +111,16 @@ export default async function Clientes({
                         <span className="font-medium hover:underline">{c.nombre}</span>
                       </Link>
                     </td>
-                    <td className="px-3 py-2">
+                    <td>
                       <Pastilla fondo={color.fondo} texto={color.texto}>
                         {t(ETIQUETA_FASE[c.fase])}
                       </Pastilla>
                     </td>
-                    <td className="px-3 py-2 text-right whitespace-nowrap">
+                    <td className="derecha num whitespace-nowrap">
                       {miles(c.llamadas_mes)}
                       <Delta actual={c.llamadas_mes} previo={c.llamadas_mes_previo} />
                     </td>
-                    <td className="px-3 py-2">
+                    <td>
                       {c.proximo_hito_fecha ? (
                         <span
                           style={{
@@ -133,7 +130,7 @@ export default async function Clientes({
                                 : "var(--texto-2)",
                           }}
                         >
-                          {fechaCorta(c.proximo_hito_fecha)}
+                          <span className="num">{fechaCorta(c.proximo_hito_fecha)}</span>
                           <span className="text-xs ml-1.5" style={{ color: "var(--texto-3)" }}>
                             {c.proximo_hito_titulo}
                           </span>
@@ -142,7 +139,7 @@ export default async function Clientes({
                         <span style={{ color: "var(--texto-3)" }}>—</span>
                       )}
                     </td>
-                    <td className="px-3 py-2 text-right">
+                    <td className="derecha">
                       {c.abiertos > 0 ? (
                         <Pastilla fondo="var(--riesgo-suave)" texto="var(--riesgo)">
                           {c.abiertos}
@@ -151,10 +148,7 @@ export default async function Clientes({
                         <span style={{ color: "var(--texto-3)" }}>—</span>
                       )}
                     </td>
-                    <td
-                      className="px-3 py-2 text-right text-xs whitespace-nowrap"
-                      style={{ color: "var(--texto-3)" }}
-                    >
+                    <td className="derecha num text-xs whitespace-nowrap" style={{ color: "var(--texto-3)" }}>
                       {c.ultimo_evento ? textoRelativo(c.ultimo_evento) : "sin registros"}
                     </td>
                   </tr>

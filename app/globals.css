@@ -1,188 +1,266 @@
 @import "tailwindcss";
 
+/* =============================================================
+   Consola de operaciones de producto.
+
+   La referencia no es un panel de SaaS sino la sala de control de
+   un centro de contacto: densidad alta, cifras monoespaciadas y un
+   color que significa estado en lugar de decorar.
+   ============================================================= */
+
 @theme {
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --font-sans: var(--tipo-sans);
+  --font-mono: var(--tipo-mono);
 }
 
 :root {
-  --fondo: #f6f6f4;
+  /* --- superficie ------------------------------------------------ */
+  --fondo: #f4f6f7;
   --superficie: #ffffff;
-  --superficie-2: #fafaf9;
-  --borde: #e4e4e1;
-  --borde-fuerte: #d3d3cf;
-  --texto: #1c1c1a;
-  --texto-2: #6b6b66;
-  --texto-3: #96968f;
-  --acento: #1f5f4f;
-  --acento-suave: #e6f0ec;
-  --riesgo: #a5342a;
-  --riesgo-suave: #fbeae8;
-  --oportunidad: #8a5a10;
-  --oportunidad-suave: #fdf2e0;
-  --creciendo: #1f5f4f;
-  --creciendo-suave: #e6f0ec;
+  --superficie-2: #eef1f3;
+  --borde: #dde2e6;
+  --borde-fuerte: #c3ccd2;
+
+  /* Grafito con matiz frío: negro puro aplana y cansa en pantallas densas. */
+  --texto: #14181d;
+  --texto-2: #5a656e;
+  --texto-3: #8a959d;
+
+  /* --- estado ---------------------------------------------------- */
+  --acento: #0f5f52;
+  --acento-suave: #dceee9;
+  --riesgo: #a52620;
+  --riesgo-suave: #fae7e5;
+  --oportunidad: #8a5a00;
+  --oportunidad-suave: #fbeed6;
+  --creciendo: #0f5f52;
+  --creciendo-suave: #dceee9;
+
+  /* --- ritmo ------------------------------------------------------ */
+  --r-control: 6px;
+  --r-panel: 10px;
+  --sombra-panel: 0 1px 2px rgba(20, 24, 29, 0.04);
+  --sombra-flotante: 0 16px 48px rgba(20, 24, 29, 0.18);
 }
 
-/* Paleta oscura, en dos sitios a propósito:
-   - bajo prefers-color-scheme para quien no ha elegido nada, excluyendo a quien
-     eligió claro explícitamente;
-   - bajo [data-theme="dark"] para que la elección gane sobre el sistema. */
+/* La paleta oscura se declara dos veces: bajo prefers-color-scheme para
+   quien no ha elegido nada, y bajo [data-theme] para que la elección gane. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --fondo: #16161a;
-    --superficie: #1e1e23;
-    --superficie-2: #24242a;
-    --borde: #32323a;
-    --borde-fuerte: #45454f;
-    --texto: #ecece9;
-    --texto-2: #a2a29c;
-    --texto-3: #75756f;
-    --acento: #6ec3a8;
-    --acento-suave: #1b3831;
-    --riesgo: #e88b80;
-    --riesgo-suave: #3a221f;
-    --oportunidad: #e0b060;
-    --oportunidad-suave: #382c17;
-    --creciendo: #6ec3a8;
-    --creciendo-suave: #1b3831;
+    --fondo: #101317;
+    --superficie: #171b20;
+    --superficie-2: #1e232a;
+    --borde: #282e36;
+    --borde-fuerte: #3b434d;
+    --texto: #e7ebee;
+    --texto-2: #98a3ac;
+    --texto-3: #6b757e;
+    --acento: #4fbfa5;
+    --acento-suave: #12332d;
+    --riesgo: #e88a83;
+    --riesgo-suave: #38201e;
+    --oportunidad: #d9a64d;
+    --oportunidad-suave: #33280f;
+    --creciendo: #4fbfa5;
+    --creciendo-suave: #12332d;
+    --sombra-panel: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --sombra-flotante: 0 16px 48px rgba(0, 0, 0, 0.55);
   }
 }
 
 :root[data-theme="dark"] {
-  --fondo: #16161a;
-  --superficie: #1e1e23;
-  --superficie-2: #24242a;
-  --borde: #32323a;
-  --borde-fuerte: #45454f;
-  --texto: #ecece9;
-  --texto-2: #a2a29c;
-  --texto-3: #75756f;
-  --acento: #6ec3a8;
-  --acento-suave: #1b3831;
-  --riesgo: #e88b80;
-  --riesgo-suave: #3a221f;
-  --oportunidad: #e0b060;
-  --oportunidad-suave: #382c17;
-  --creciendo: #6ec3a8;
-  --creciendo-suave: #1b3831;
+  --fondo: #101317;
+  --superficie: #171b20;
+  --superficie-2: #1e232a;
+  --borde: #282e36;
+  --borde-fuerte: #3b434d;
+  --texto: #e7ebee;
+  --texto-2: #98a3ac;
+  --texto-3: #6b757e;
+  --acento: #4fbfa5;
+  --acento-suave: #12332d;
+  --riesgo: #e88a83;
+  --riesgo-suave: #38201e;
+  --oportunidad: #d9a64d;
+  --oportunidad-suave: #33280f;
+  --creciendo: #4fbfa5;
+  --creciendo-suave: #12332d;
+  --sombra-panel: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --sombra-flotante: 0 16px 48px rgba(0, 0, 0, 0.55);
 }
 
-html {
-  color-scheme: light dark;
-}
-
-:root[data-theme="light"] {
-  color-scheme: light;
-}
-
-:root[data-theme="dark"] {
-  color-scheme: dark;
-}
+html { color-scheme: light dark; }
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
 
 html,
 body {
   background: var(--fondo);
   color: var(--texto);
-  font-family: var(--font-sans);
+  font-family: var(--tipo-sans);
+  font-size: 14px;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-/* ---------------------------------------------------------------- primitivas */
+/* Todo lo que sea una medida va en mono y con cifras de ancho fijo, para que
+   una columna de números se lea como una columna y no como texto. */
+.num,
+time,
+td.num {
+  font-family: var(--tipo-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  letter-spacing: -0.01em;
+}
+
+:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ---------------------------------------------------------------- texto */
+
+.eyebrow {
+  font-family: var(--tipo-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--texto-3);
+}
+
+.titulo-pagina {
+  font-size: 1.375rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.titulo-seccion {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+
+/* ---------------------------------------------------------------- cajas */
 
 .tarjeta {
   background: var(--superficie);
   border: 1px solid var(--borde);
-  border-radius: 0.75rem;
+  border-radius: var(--r-panel);
+  box-shadow: var(--sombra-panel);
+}
+
+/* ---------------------------------------------------------------- campos */
+
+.etiqueta {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--texto-3);
+  margin-bottom: 0.35rem;
 }
 
 .campo {
   width: 100%;
   background: var(--superficie);
   border: 1px solid var(--borde-fuerte);
-  border-radius: 0.5rem;
-  padding: 0.5rem 0.7rem;
+  border-radius: var(--r-control);
+  padding: 0.45rem 0.6rem;
   font-size: 0.875rem;
+  font-family: inherit;
   color: var(--texto);
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
 }
+
+.campo::placeholder { color: var(--texto-3); }
+
+.campo:hover { border-color: var(--texto-3); }
 
 .campo:focus {
-  outline: 2px solid var(--acento);
-  outline-offset: -1px;
+  outline: none;
+  border-color: var(--acento);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--acento) 16%, transparent);
 }
 
-.etiqueta {
-  display: block;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--texto-2);
-  margin-bottom: 0.3rem;
-  letter-spacing: 0.01em;
+input[type="date"].campo,
+input[type="month"].campo,
+input[inputmode="numeric"].campo,
+input[inputmode="decimal"].campo {
+  font-family: var(--tipo-mono);
+  font-variant-numeric: tabular-nums;
 }
 
-.boton {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  background: var(--acento);
-  color: #fff;
-  border-radius: 0.5rem;
-  padding: 0.5rem 0.9rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
-}
+/* ---------------------------------------------------------------- botones */
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .boton {
-    color: #10231e;
-  }
-}
-
-:root[data-theme="dark"] .boton {
-  color: #10231e;
-}
-
-.boton:hover {
-  filter: brightness(1.08);
-}
-
+.boton,
 .boton-suave {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.4rem;
+  border-radius: var(--r-control);
+  padding: 0.45rem 0.8rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.12s ease, border-color 0.12s ease, opacity 0.12s ease;
+}
+
+.boton {
+  background: var(--acento);
+  color: #fff;
+  border: 1px solid var(--acento);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .boton { color: #08201b; }
+}
+:root[data-theme="dark"] .boton { color: #08201b; }
+
+.boton:hover { background: color-mix(in srgb, var(--acento) 88%, #000); }
+.boton:disabled { opacity: 0.55; cursor: default; }
+
+.boton-suave {
   background: var(--superficie);
   color: var(--texto);
   border: 1px solid var(--borde-fuerte);
-  border-radius: 0.5rem;
-  padding: 0.45rem 0.8rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
 }
 
-.boton-suave:hover {
-  background: var(--superficie-2);
-}
+.boton-suave:hover { background: var(--superficie-2); }
+
+/* ---------------------------------------------------------------- chips */
 
 .pastilla {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  border-radius: 999px;
-  padding: 0.15rem 0.55rem;
-  font-size: 0.7rem;
+  border-radius: 4px;
+  padding: 0.1rem 0.4rem;
+  font-size: 0.6875rem;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
   white-space: nowrap;
+  line-height: 1.5;
 }
 
 /* ---------------------------------------------------------------- acciones */
 
-/* Acciones de una fila: parecen botones y van en una sola línea, pero al
-   abrirse ocupan todo el ancho para que quepa el formulario. Sin JavaScript:
-   details[open] hace el trabajo. */
 .accion > summary {
   display: inline-flex;
   align-items: center;
@@ -193,42 +271,218 @@ body {
   font-size: 0.75rem;
   font-weight: 500;
   color: var(--texto-2);
-  background: var(--superficie-2);
+  background: transparent;
   border: 1px solid var(--borde);
-  border-radius: 0.4rem;
-  padding: 0.2rem 0.55rem;
+  border-radius: var(--r-control);
+  padding: 0.2rem 0.5rem;
+  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
 }
 
-.accion > summary::-webkit-details-marker {
-  display: none;
-}
+.accion > summary::-webkit-details-marker { display: none; }
 
 .accion > summary:hover {
-  background: var(--superficie);
+  background: var(--superficie-2);
   color: var(--texto);
   border-color: var(--borde-fuerte);
 }
 
-.accion[open] {
-  width: 100%;
+.accion[open] { width: 100%; }
+
+/* Abierto, deja de ser un botón y se convierte en el encabezado del panel. */
+.accion[open] > summary {
+  background: var(--superficie-2);
+  color: var(--texto);
+  border-color: var(--borde);
+  margin-bottom: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
-.accion[open] > summary {
-  background: var(--acento-suave);
-  color: var(--acento);
-  border-color: transparent;
-  margin-bottom: 0.6rem;
+.accion[open] > *:not(summary) {
+  border: 1px solid var(--borde);
+  border-top: none;
+  border-radius: 0 var(--r-control) var(--r-control) var(--r-control);
+  background: var(--superficie-2);
+  padding: 0.75rem;
 }
 
 .accion-peligro[open] > summary {
   background: var(--riesgo-suave);
   color: var(--riesgo);
+  border-color: var(--riesgo-suave);
+}
+
+.accion-peligro[open] > *:not(summary) {
+  border-color: var(--riesgo-suave);
+  background: color-mix(in srgb, var(--riesgo-suave) 45%, var(--superficie));
 }
 
 .barra-acciones {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
-  gap: 0.4rem;
-  margin-top: 0.6rem;
+  gap: 0.35rem;
+  margin-top: 0.55rem;
 }
+
+/* ---------------------------------------------------------------- espina
+
+   La firma de la casa. El timeline deja de ser una pila de tarjetas y pasa a
+   leerse como un registro de incidentes: una línea vertical continua y, sobre
+   ella, un marcador cuya FORMA dice de qué clase es la entrada y cuyo COLOR
+   dice si sigue viva. La posición ya la da el orden cronológico.            */
+
+.espina {
+  position: relative;
+  padding-left: 1.75rem;
+}
+
+.espina::before {
+  content: "";
+  position: absolute;
+  left: 0.4375rem;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--borde-fuerte);
+  opacity: 0.55;
+}
+
+.espina:first-child::before { top: 1.1rem; }
+.espina:last-child::before { bottom: auto; height: 1.1rem; }
+
+.marcador {
+  position: absolute;
+  left: 0;
+  top: 0.95rem;
+  width: 0.9375rem;
+  height: 0.9375rem;
+  display: grid;
+  place-items: center;
+  background: var(--superficie);
+}
+
+.marcador i {
+  display: block;
+  width: 0.5rem;
+  height: 0.5rem;
+  background: currentColor;
+}
+
+/* Círculo: algo que pasó y ya está. */
+.marcador i { border-radius: 50%; }
+/* Cuadrado girado: algo que sigue vivo y hay que cerrar. */
+.marcador[data-vivo="si"] i { border-radius: 1px; transform: rotate(45deg); }
+/* Anillo: cerrado. Se distingue de un punto sin necesidad de leer. */
+.marcador[data-vivo="cerrado"] i {
+  background: transparent;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+}
+
+/* ---------------------------------------------------------------- tablas */
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.tabla thead th {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--texto-3);
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--borde);
+  white-space: nowrap;
+}
+
+.tabla tbody td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--borde);
+  vertical-align: middle;
+}
+
+.tabla tbody tr:last-child td { border-bottom: none; }
+.tabla tbody tr:hover { background: var(--superficie-2); }
+.tabla .derecha { text-align: right; }
+
+/* ---------------------------------------------------------------- avisos */
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--texto);
+  color: var(--fondo);
+  border-radius: var(--r-control);
+  padding: 0.55rem 0.8rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  box-shadow: var(--sombra-flotante);
+  animation: entra-toast 0.18s ease-out;
+}
+
+@keyframes entra-toast {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------------------------------------------------------------- modal */
+
+.velo {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: color-mix(in srgb, var(--texto) 35%, transparent);
+  animation: aparece 0.14s ease-out;
+  /* El desenfoque va en línea en el componente: el compilador de CSS
+     descartaba aquí la declaración de backdrop-filter. */
+}
+
+.modal {
+  position: fixed;
+  z-index: 61;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(42rem, calc(100vw - 2rem));
+  max-height: calc(100vh - 4rem);
+  display: flex;
+  flex-direction: column;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-panel);
+  box-shadow: var(--sombra-flotante);
+  animation: sube 0.16s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.modal > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1.1rem;
+  border-bottom: 1px solid var(--borde);
+}
+
+.modal > .cuerpo {
+  padding: 1.1rem;
+  overflow-y: auto;
+}
+
+@keyframes aparece {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes sube {
+  from { opacity: 0; transform: translate(-50%, calc(-50% + 8px)) scale(0.985); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+/* Con el modal abierto el fondo no debe poder desplazarse por detrás. */
+body:has(.velo) { overflow: hidden; }

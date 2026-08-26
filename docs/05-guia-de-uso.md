@@ -147,6 +147,15 @@ sobreescribiría lo que escribiste con su versión en inglés.
 Si no hay proveedor de IA configurado, el inglés se aplica solo a la interfaz y tu
 contenido se ve tal como lo escribiste.
 
+## Cómo se crean las cosas
+
+Todo lo que se crea —un registro, un hito, un compromiso, un contacto, un mes de
+métricas— se abre en un modal desde su botón, con el fondo desenfocado. Antes eran
+formularios fijos que empujaban hacia abajo lo que había que leer y competían con ello.
+
+El foco entra solo al primer campo, se cierra con Escape o clic fuera, y al guardar se
+cierra solo. Si algo falla, el modal se queda abierto con lo escrito dentro.
+
 ## Atajos que ahorran clics
 
 **Registrar** — el botón verde del menú lateral abre el registro sin tener que buscar el

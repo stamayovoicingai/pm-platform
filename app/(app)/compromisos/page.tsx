@@ -30,14 +30,15 @@ export default async function Compromisos() {
   return (
     <>
       <div className="mb-5">
-        <h1 className="text-xl font-semibold tracking-tight">{t("Compromisos")}</h1>
+        <p className="eyebrow mb-1">{t("Lo que alguien debe hacer")}</p>
+        <h1 className="titulo-pagina">{t("Compromisos")}</h1>
         <p className="text-sm mt-0.5" style={{ color: "var(--texto-2)" }}>
           {abiertos.length} abiertos · {vencidos.length} vencidos
         </p>
       </div>
 
       {abiertos.length === 0 ? (
-        <Vacio>{t("Nada pendiente.")}</Vacio>
+        <Vacio icono="check">{t("Nada pendiente.")}</Vacio>
       ) : (
         <div className="tarjeta divide-y" style={{ borderColor: "var(--borde)" }}>
           {abiertos.map((c) => {

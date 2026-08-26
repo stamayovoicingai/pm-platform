@@ -7,6 +7,7 @@ import { LADOS, ETIQUETA_LADO } from "@/lib/dominio";
 
 import { crearTraductor } from "@/lib/i18n";
 import { leerIdioma } from "@/lib/preferencias";
+import Modal, { FormularioModal } from "@/components/Modal";
 export const dynamic = "force-dynamic";
 
 export default async function ContactosCliente({
@@ -20,12 +21,15 @@ export default async function ContactosCliente({
 
   return (
     <>
-      <details className="tarjeta mb-4">
-        <summary
-          className="px-4 py-2.5 text-sm cursor-pointer select-none"
-          style={{ color: "var(--texto-2)" }}
-        >{t("Añadir contacto")}</summary>
-        <form action={crearContacto} className="px-4 pb-4 pt-1 space-y-3">
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <h2 className="titulo-seccion">{t("Contactos")}</h2>
+        <Modal
+          etiqueta={t("Añadir contacto")}
+          titulo={t("Añadir contacto")}
+          descripcion={t("Quién aprueba, quién bloquea, quién decide.")}
+          variante="principal"
+        >
+          <FormularioModal accion={crearContacto}>
           <input type="hidden" name="cliente_id" value={id} />
           <div className="grid sm:grid-cols-4 gap-3">
             <div>
@@ -52,11 +56,15 @@ export default async function ContactosCliente({
             </div>
           </div>
           <button type="submit" className="boton">{t("Añadir contacto")}</button>
-        </form>
-      </details>
+        </FormularioModal>
+        </Modal>
+      </div>
+
 
       {contactos.length === 0 ? (
-        <Vacio>{t("Sin contactos registrados.")}</Vacio>
+        <Vacio icono="equipo">
+          {t("Sin contactos. Sirven para asignar responsables a los compromisos.")}
+        </Vacio>
       ) : (
         <div className="tarjeta divide-y" style={{ borderColor: "var(--borde)" }}>
           {contactos.map((c) => (

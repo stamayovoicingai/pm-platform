@@ -56,7 +56,7 @@ export default async function ClienteLayout({
       <div className="flex items-start justify-between gap-4 mb-4">
         <div className="min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-xl font-semibold tracking-tight truncate">
+            <h1 className="titulo-pagina truncate">
               {cliente.nombre}
             </h1>
             <Pastilla fondo={color.fondo} texto={color.texto}>

@@ -1,8 +1,10 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useCerrarModal } from "./Modal";
 import { crearEvento } from "@/app/acciones";
 import { LIMITE_BYTES, MAX_ARCHIVOS_POR_SUBIDA, tamanoLegible } from "@/lib/adjuntos";
+import Icono from "./Icono";
 import {
   TIPOS_EVENTO_MANUAL,
   SEVERIDADES,
@@ -37,6 +39,7 @@ export default function FormularioEvento({
   const [seguir, setSeguir] = useState(seguirPorDefecto("nota"));
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const cerrarModal = useCerrarModal();
 
   return (
     <form
@@ -49,13 +52,18 @@ export default function FormularioEvento({
           formulario.current?.reset();
           setTipo("nota");
           setSeguir(seguirPorDefecto("nota"));
+          cerrarModal();
         } catch (e) {
+          if (
+            typeof e === "object" && e !== null && "digest" in e &&
+            String((e as { digest: unknown }).digest).startsWith("NEXT_REDIRECT")
+          ) throw e;
           setError(e instanceof Error ? e.message : "No se pudo registrar");
         } finally {
           setGuardando(false);
         }
       }}
-      className="tarjeta p-4 space-y-3"
+      className="space-y-3"
     >
       {clientes ? (
         <div>
@@ -115,19 +123,28 @@ export default function FormularioEvento({
 
       <textarea name="cuerpo" rows={2} className="campo" placeholder={t("Detalle (opcional)")} />
 
-      <div>
-        <label className="etiqueta" htmlFor="archivos">
-          Archivos · hasta {MAX_ARCHIVOS_POR_SUBIDA}, {tamanoLegible(LIMITE_BYTES)} cada uno
-        </label>
-        <input
-          id="archivos"
-          type="file"
-          name="archivos"
-          multiple
-          className="text-sm w-full"
-          style={{ color: "var(--texto-2)" }}
-        />
-      </div>
+      {/* Los archivos van plegados: se usan en una de cada diez entradas y,
+          desplegados, pesaban más en la pantalla que el propio texto. */}
+      <details className="accion">
+        <summary>
+          <Icono nombre="adjuntar" tam={12} />
+          {t("Adjuntar archivo")}
+        </summary>
+        <div>
+          <input
+            id="archivos"
+            type="file"
+            name="archivos"
+            multiple
+            className="text-xs w-full"
+            style={{ color: "var(--texto-2)" }}
+          />
+          <p className="text-xs mt-1.5" style={{ color: "var(--texto-3)" }}>
+            {t("hasta")} {MAX_ARCHIVOS_POR_SUBIDA}, {tamanoLegible(LIMITE_BYTES)}{" "}
+            {t("cada uno")}
+          </p>
+        </div>
+      </details>
 
       {error && (
         <p className="text-sm" style={{ color: "var(--riesgo)" }}>

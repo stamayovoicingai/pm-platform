@@ -12,7 +12,8 @@ export default async function Perfil() {
 
   return (
     <div className="max-w-md">
-      <h1 className="text-2xl font-semibold tracking-tight mb-1">{t("Cuenta")}</h1>
+      <p className="eyebrow mb-1">{t("Preferencias")}</p>
+      <h1 className="titulo-pagina mb-1">{t("Cuenta")}</h1>
       <p className="text-sm mb-6" style={{ color: "var(--texto-2)" }}>
         {sesion?.nombre} · {sesion?.email}
       </p>

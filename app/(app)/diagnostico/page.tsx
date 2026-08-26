@@ -63,7 +63,8 @@ export default async function Diagnostico() {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="text-xl font-semibold tracking-tight mb-1">{t("Diagnóstico")}</h1>
+      <p className="eyebrow mb-1">{t("Integraciones")}</p>
+      <h1 className="titulo-pagina mb-1">{t("Diagnóstico")}</h1>
       <p className="text-sm mb-6" style={{ color: "var(--texto-2)" }}>
         {t("Comprobaciones en vivo contra Slack y el modelo.")}
       </p>

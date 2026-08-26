@@ -261,6 +261,57 @@ export const EN: Record<string, string> = {
   "Todavía no hay clientes. Crea el primero para poder registrar algo.":
     "No clients yet. Create the first one to be able to log anything.",
 
+  // Encabezados
+  Panorama: "Overview",
+  Cartera: "Portfolio",
+  "Fechas comprometidas": "Committed dates",
+  "Lo que alguien debe hacer": "What someone owes",
+  "Registro diario": "Daily log",
+  "Captura rápida": "Quick capture",
+  Acceso: "Access",
+  Integraciones: "Integrations",
+  Preferencias: "Preferences",
+  actualización: "update",
+  actualizaciones: "updates",
+  hasta: "up to",
+  "cada uno": "each",
+  "Marcar como": "Mark as",
+
+  // Estados vacíos
+  "Sin hitos. Añade la fecha de salida para que aparezca en Hoy y te avise.":
+    "No milestones. Add the go-live date so it shows in Today and warns you.",
+  "Sin compromisos abiertos. Añade uno cuando alguien quede en hacer algo.":
+    "No open commitments. Add one when someone owes something.",
+  "Sin contactos. Sirven para asignar responsables a los compromisos.":
+    "No contacts. They are used to assign owners to commitments.",
+  "Nada registrado todavía. Escribe arriba lo primero.":
+    "Nothing logged yet. Write the first entry above.",
+
+  // Modales
+  Registros: "Entries",
+  "Nuevo registro": "New entry",
+  "Elige el cliente y escribe lo que pasó.": "Pick the client and write what happened.",
+  "Qué pasó, de qué tipo es y si hay que seguirlo.":
+    "What happened, what kind it is, and whether it needs tracking.",
+  "Una fecha comprometida del proyecto.": "A committed project date.",
+  "Algo que alguien queda en hacer, con fecha.":
+    "Something someone owes, with a date.",
+  "Quién aprueba, quién bloquea, quién decide.":
+    "Who approves, who blocks, who decides.",
+  "Cargar un mes": "Load a month",
+  "Para meses de los que tienes el total pero no el día a día.":
+    "For months where you have the total but not the daily figures.",
+  "Lo vendido al cliente para": "What was sold to the client for",
+  "Dejar ambos vacíos borra el objetivo.": "Leaving both empty deletes the target.",
+  "Un mes cargado aquí manda sobre la suma de sus días.":
+    "A month loaded here overrides the sum of its days.",
+  "Métricas mensuales": "Monthly metrics",
+  "Meses cargados a mano": "Months entered manually",
+  llamadas: "calls",
+  Confirmar: "Confirm",
+  "Sin métricas registradas. Se capturan en la pantalla de Métricas.":
+    "No metrics logged. They are captured on the Metrics screen.",
+
   // Preferencias
   Tema: "Theme",
   Idioma: "Language",

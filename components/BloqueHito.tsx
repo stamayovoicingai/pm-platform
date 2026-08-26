@@ -1,4 +1,5 @@
 import Pastilla from "./Pastilla";
+import Icono from "./Icono";
 import { moverFechaHito, cambiarEstadoHito, editarHito, borrarHito } from "@/app/acciones";
 import BotonBorrar from "./BotonBorrar";
 import { ETIQUETA_HITO, ETIQUETA_ESTADO_HITO, ESTADOS_HITO, TIPOS_HITO } from "@/lib/dominio";
@@ -31,7 +32,8 @@ export default async function BloqueHito({
             {!abierto && <Pastilla>{t(ETIQUETA_ESTADO_HITO[hito.estado])}</Pastilla>}
             {hito.veces_movido > 0 && (
               <Pastilla fondo="var(--oportunidad-suave)" texto="var(--oportunidad)">
-                movido {hito.veces_movido}×
+                <Icono nombre="calendario" tam={10} />
+                {hito.veces_movido}×
               </Pastilla>
             )}
           </div>
@@ -43,7 +45,7 @@ export default async function BloqueHito({
         </div>
 
         <div className="text-right shrink-0">
-          <div className="text-sm font-medium">{fechaCorta(hito.fecha_objetivo)}</div>
+          <time className="num text-sm font-medium block">{fechaCorta(hito.fecha_objetivo)}</time>
           {abierto && (
             <div
               className="text-xs"
@@ -61,7 +63,8 @@ export default async function BloqueHito({
       >
         <details className="accion">
           <summary>
-            📅 {t("Mover fecha")}
+            <Icono nombre="calendario" tam={12} />
+            {t("Mover fecha")}
             {historial.length > 0 && ` · ${historial.length}`}
           </summary>
 
@@ -105,7 +108,10 @@ export default async function BloqueHito({
         </details>
 
         <details className="accion accion-peligro">
-          <summary>✎ {t("Editar")}</summary>
+          <summary>
+            <Icono nombre="editar" tam={12} />
+            {t("Editar")}
+          </summary>
 
           <form action={editarHito} className="mt-3 space-y-2">
             <input type="hidden" name="id" value={hito.id} />

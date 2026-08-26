@@ -29,7 +29,8 @@ export default async function Equipo() {
   return (
     <div className="max-w-3xl space-y-6">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">{t("Equipo")}</h1>
+        <p className="eyebrow mb-1">{t("Acceso")}</p>
+        <h1 className="titulo-pagina">{t("Equipo")}</h1>
         <p className="text-sm mt-0.5" style={{ color: "var(--texto-2)" }}>
           {miembros.length} {miembros.length === 1 ? t("persona") : t("personas")}
         </p>

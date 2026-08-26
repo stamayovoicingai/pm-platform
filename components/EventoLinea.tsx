@@ -1,4 +1,6 @@
 import Pastilla from "./Pastilla";
+import BotonBorrar from "./BotonBorrar";
+import Icono from "./Icono";
 import {
   actualizarEvento,
   subirAdjunto,
@@ -8,155 +10,308 @@ import {
   borrarEvento,
   borrarActualizacion,
 } from "@/app/acciones";
-import BotonBorrar from "./BotonBorrar";
-import {
-  LIMITE_BYTES,
-  MAX_ARCHIVOS_POR_SUBIDA,
-  tamanoLegible,
-} from "@/lib/adjuntos";
+import { LIMITE_BYTES, MAX_ARCHIVOS_POR_SUBIDA, tamanoLegible } from "@/lib/adjuntos";
 import {
   ETIQUETA_EVENTO,
   ETIQUETA_SEGUIMIENTO,
   ESTADOS_SEGUIMIENTO,
   TIPOS_EVENTO_MANUAL,
   SEVERIDADES,
-  ETIQUETA_EVENTO as ETIQUETA_TIPO,
   ETIQUETA_SEVERIDAD,
   colorEvento,
   colorSeguimiento,
 } from "@/lib/dominio";
 import { fechaCorta, textoRelativo, aISO } from "@/lib/fechas";
+import { crearTraductor } from "@/lib/i18n";
+import { leerIdioma } from "@/lib/preferencias";
 import type { EventoFila, Actualizacion } from "@/lib/consultas/eventos";
 import type { AdjuntoFila } from "@/lib/consultas/adjuntos";
 
-import { crearTraductor } from "@/lib/i18n";
-import { leerIdioma } from "@/lib/preferencias";
 /**
- * Una entrada del timeline. Si el evento admite seguimiento, trae su estado y
- * el hilo de actualizaciones: qué se fue sabiendo y qué cambió.
+ * Una entrada del registro.
+ *
+ * La marca sobre la espina codifica dos cosas de un vistazo: la forma dice si
+ * el asunto sigue vivo, está cerrado o simplemente ocurrió; el color, de qué
+ * clase es. Se lee sin tener que leer.
  */
 export default async function EventoLinea({
   evento,
   actualizaciones = [],
   adjuntos = [],
   mostrarCliente = false,
+  compacto = false,
 }: {
   evento: EventoFila;
   actualizaciones?: Actualizacion[];
   adjuntos?: AdjuntoFila[];
   mostrarCliente?: boolean;
+  /** En listas, deja solo la acción que se usa ahí: actualizar y cerrar. */
+  compacto?: boolean;
 }) {
   const t = crearTraductor(await leerIdioma());
+
   const color = colorEvento(evento.tipo);
   const estado = evento.estado_seguimiento;
   const seguible = estado !== null;
   const cerrado = estado === "resuelto" || estado === "descartado";
+  const vivo = !seguible ? "no" : cerrado ? "cerrado" : "si";
+
+  const colorMarca = cerrado
+    ? "var(--texto-3)"
+    : seguible
+      ? colorSeguimiento(estado).texto
+      : color.texto;
 
   return (
-    <div className="px-4 py-3" style={{ borderColor: "var(--borde)" }}>
-      <div className="flex items-start gap-3">
-        <span className="text-xs shrink-0 w-14 pt-0.5" style={{ color: "var(--texto-3)" }}>
+    <article className="espina px-4 py-3">
+      <span className="marcador" data-vivo={vivo} style={{ color: colorMarca }}>
+        <i />
+      </span>
+
+      <header className="flex items-baseline gap-2 flex-wrap">
+        <time className="num text-xs" style={{ color: "var(--texto-3)" }}>
           {fechaCorta(evento.fecha_evento)}
-        </span>
+        </time>
 
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <Pastilla fondo={color.fondo} texto={color.texto}>
-              {t(ETIQUETA_EVENTO[evento.tipo])}
-            </Pastilla>
+        <Pastilla fondo={color.fondo} texto={color.texto}>
+          {t(ETIQUETA_EVENTO[evento.tipo])}
+        </Pastilla>
 
-            {seguible && (
-              <Pastilla
-                fondo={colorSeguimiento(estado).fondo}
-                texto={colorSeguimiento(estado).texto}
+        {seguible && (
+          <Pastilla
+            fondo={colorSeguimiento(estado).fondo}
+            texto={colorSeguimiento(estado).texto}
+          >
+            {t(ETIQUETA_SEGUIMIENTO[estado])}
+          </Pastilla>
+        )}
+
+        {evento.severidad === "alta" && !cerrado && (
+          <Pastilla fondo="var(--riesgo-suave)" texto="var(--riesgo)">
+            <Icono nombre="alerta" tam={10} />
+            {t("Alta")}
+          </Pastilla>
+        )}
+
+        {evento.origen !== "app" && <Pastilla>{evento.origen}</Pastilla>}
+
+        {mostrarCliente && (
+          <span className="text-xs" style={{ color: "var(--texto-3)" }}>
+            {evento.cliente_nombre}
+          </span>
+        )}
+      </header>
+
+      <h3
+        className="text-sm font-medium mt-1"
+        style={cerrado ? { color: "var(--texto-2)" } : undefined}
+      >
+        {evento.titulo}
+      </h3>
+
+      {evento.cuerpo && (
+        <p className="text-sm mt-1 whitespace-pre-wrap" style={{ color: "var(--texto-2)" }}>
+          {evento.cuerpo}
+        </p>
+      )}
+
+      {adjuntos.length > 0 && (
+        <ul className="mt-2 flex flex-wrap gap-1.5">
+          {adjuntos.map((a) => (
+            <li key={a.id} className="flex items-center">
+              <a
+                href={`/api/adjuntos/${a.id}`}
+                className="pastilla hover:underline"
+                style={{
+                  background: "var(--superficie-2)",
+                  color: "var(--texto-2)",
+                  border: "1px solid var(--borde)",
+                  padding: "0.15rem 0.45rem",
+                }}
               >
-                {t(ETIQUETA_SEGUIMIENTO[estado])}
-              </Pastilla>
-            )}
+                <Icono nombre="descargar" tam={11} />
+                {a.nombre}
+                <span className="num" style={{ color: "var(--texto-3)" }}>
+                  {tamanoLegible(a.tamano_bytes)}
+                </span>
+              </a>
+              <form action={borrarAdjunto}>
+                <input type="hidden" name="id" value={a.id} />
+                <input type="hidden" name="cliente_id" value={evento.cliente_id} />
+                <button
+                  type="submit"
+                  className="px-1"
+                  style={{ color: "var(--texto-3)" }}
+                  title={t("Quitar adjunto")}
+                >
+                  <Icono nombre="cerrar" tam={11} />
+                </button>
+              </form>
+            </li>
+          ))}
+        </ul>
+      )}
 
-            {evento.severidad === "alta" && !cerrado && (
-              <Pastilla fondo="var(--riesgo-suave)" texto="var(--riesgo)">{t("alta")}</Pastilla>
-            )}
-
-            {evento.origen !== "app" && <Pastilla>{evento.origen}</Pastilla>}
-
-            <span
-              className="text-sm font-medium"
-              style={cerrado ? { color: "var(--texto-2)" } : undefined}
+      <div className="barra-acciones">
+        {!seguible && (
+          <form action={activarSeguimiento}>
+            <input type="hidden" name="evento_id" value={evento.id} />
+            <input type="hidden" name="cliente_id" value={evento.cliente_id} />
+            <button
+              type="submit"
+              className="accion-boton"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.3rem",
+                fontSize: "0.75rem",
+                fontWeight: 500,
+                color: "var(--texto-2)",
+                border: "1px solid var(--borde)",
+                borderRadius: "var(--r-control)",
+                padding: "0.2rem 0.5rem",
+                cursor: "pointer",
+              }}
+              title={t("Pasa a asuntos abiertos hasta que lo cierres")}
             >
-              {evento.titulo}
-            </span>
-          </div>
+              <Icono nombre="alerta" tam={12} />
+              {t("Hacer seguimiento")}
+            </button>
+          </form>
+        )}
 
-          {mostrarCliente && (
-            <p className="text-xs mt-0.5" style={{ color: "var(--texto-3)" }}>
-              {evento.cliente_nombre}
-            </p>
-          )}
+        {/* El hilo nunca se abre solo: en una lista, un hilo desplegado por
+            entrada convierte cinco asuntos en una pantalla entera y se pierde
+            lo único que importa, que es poder barrerlos de un vistazo. */}
+        {seguible && (
+          <details className="accion">
+            <summary>
+              <Icono nombre="hilo" tam={12} />
+              {actualizaciones.length === 0
+                ? t("Actualizar")
+                : `${actualizaciones.length} ${
+                    actualizaciones.length === 1 ? t("actualización") : t("actualizaciones")
+                  }`}
+            </summary>
 
-          {evento.cuerpo && (
-            <p
-              className="text-sm mt-1 whitespace-pre-wrap"
-              style={{ color: "var(--texto-2)" }}
-            >
-              {evento.cuerpo}
-            </p>
-          )}
+            <div>
+              {actualizaciones.length > 0 && (
+                <ol className="space-y-2.5 mb-3">
+                  {actualizaciones.map((a) => (
+                    <li key={a.id} className="flex items-start gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <time className="num text-xs" style={{ color: "var(--texto-3)" }}>
+                            {textoRelativo(a.creado_en)}
+                          </time>
+                          {a.estado_nuevo && (
+                            <Pastilla
+                              fondo={colorSeguimiento(a.estado_nuevo).fondo}
+                              texto={colorSeguimiento(a.estado_nuevo).texto}
+                            >
+                              {a.estado_anterior
+                                ? `${t(ETIQUETA_SEGUIMIENTO[a.estado_anterior])} → ${t(
+                                    ETIQUETA_SEGUIMIENTO[a.estado_nuevo],
+                                  )}`
+                                : t(ETIQUETA_SEGUIMIENTO[a.estado_nuevo])}
+                            </Pastilla>
+                          )}
+                        </div>
+                        <p
+                          className="text-sm whitespace-pre-wrap"
+                          style={{ color: "var(--texto-2)" }}
+                        >
+                          {a.cuerpo}
+                        </p>
+                      </div>
+                      <form action={borrarActualizacion} className="shrink-0">
+                        <input type="hidden" name="id" value={a.id} />
+                        <input type="hidden" name="cliente_id" value={evento.cliente_id} />
+                        <button
+                          type="submit"
+                          style={{ color: "var(--texto-3)" }}
+                          title={t("Borrar")}
+                        >
+                          <Icono nombre="cerrar" tam={12} />
+                        </button>
+                      </form>
+                    </li>
+                  ))}
+                </ol>
+              )}
 
-          {adjuntos.length > 0 && (
-            <ul className="mt-2 flex flex-wrap gap-2">
-              {adjuntos.map((a) => (
-                <li key={a.id} className="flex items-center gap-1">
-                  <a
-                    href={`/api/adjuntos/${a.id}`}
-                    className="pastilla hover:underline"
-                    style={{
-                      background: "var(--superficie-2)",
-                      color: "var(--texto-2)",
-                      border: "1px solid var(--borde)",
-                    }}
-                    title={`Descargar · ${tamanoLegible(a.tamano_bytes)}`}
+              <form action={actualizarEvento} className="space-y-2">
+                <input type="hidden" name="evento_id" value={evento.id} />
+                <input type="hidden" name="cliente_id" value={evento.cliente_id} />
+                <textarea
+                  name="cuerpo"
+                  required
+                  rows={2}
+                  className="campo"
+                  placeholder={t("Qué pasó con esto")}
+                />
+                <div className="flex items-center gap-2">
+                  <select
+                    name="estado_nuevo"
+                    className="campo"
+                    style={{ width: "auto" }}
+                    defaultValue=""
                   >
-                    ↓ {a.nombre}
-                    <span style={{ color: "var(--texto-3)" }}>
-                      {tamanoLegible(a.tamano_bytes)}
-                    </span>
-                  </a>
-                  <form action={borrarAdjunto}>
-                    <input type="hidden" name="id" value={a.id} />
-                    <input type="hidden" name="cliente_id" value={evento.cliente_id} />
-                    <button
-                      type="submit"
-                      className="text-xs px-1"
-                      style={{ color: "var(--texto-3)" }}
-                      title={t("Quitar adjunto")}
-                    >
-                      ×
-                    </button>
-                  </form>
-                </li>
-              ))}
-            </ul>
-          )}
+                    <option value="">{t("Sin cambiar el estado")}</option>
+                    {ESTADOS_SEGUIMIENTO.filter((e) => e !== estado).map((e) => (
+                      <option key={e} value={e}>
+                        {t("Marcar como")} {t(ETIQUETA_SEGUIMIENTO[e]).toLowerCase()}
+                      </option>
+                    ))}
+                  </select>
+                  <button type="submit" className="boton">
+                    {t("Añadir")}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </details>
+        )}
 
-          <div className="barra-acciones">
-          {!seguible && (
-            <form action={activarSeguimiento}>
+        {!compacto && (
+        <details className="accion">
+          <summary>
+            <Icono nombre="adjuntar" tam={12} />
+            {t("Adjuntar archivo")}
+          </summary>
+          <div>
+            <form action={subirAdjunto} className="flex flex-wrap items-center gap-2">
               <input type="hidden" name="evento_id" value={evento.id} />
               <input type="hidden" name="cliente_id" value={evento.cliente_id} />
-              <button
-                type="submit"
+              <input
+                type="file"
+                name="archivos"
+                multiple
+                required
                 className="text-xs"
                 style={{ color: "var(--texto-2)" }}
-                title={t("Pasa a asuntos abiertos hasta que lo cierres")}
-              >{t("Hacer seguimiento")}</button>
+              />
+              <button type="submit" className="boton-suave">
+                {t("Subir")}
+              </button>
+              <span className="text-xs" style={{ color: "var(--texto-3)" }}>
+                {t("hasta")} {MAX_ARCHIVOS_POR_SUBIDA}, {tamanoLegible(LIMITE_BYTES)}{" "}
+                {t("cada uno")}
+              </span>
             </form>
-          )}
+          </div>
+        </details>
+        )}
 
-          <details className="accion accion-peligro">
-            <summary>✎ {t("Editar")}</summary>
+        {!compacto && (
+        <details className="accion accion-peligro">
+          <summary>
+            <Icono nombre="editar" tam={12} />
+            {t("Editar")}
+          </summary>
 
-            <form action={editarEvento} className="mt-2 space-y-2">
+          <div>
+            <form action={editarEvento} className="space-y-2">
               <input type="hidden" name="id" value={evento.id} />
               <input type="hidden" name="cliente_id" value={evento.cliente_id} />
               <input name="titulo" required defaultValue={evento.titulo} className="campo" />
@@ -172,7 +327,7 @@ export default async function EventoLinea({
                   <select name="tipo" className="campo" defaultValue={evento.tipo}>
                     {TIPOS_EVENTO_MANUAL.map((opcion) => (
                       <option key={opcion} value={opcion}>
-                        {t(ETIQUETA_TIPO[opcion])}
+                        {t(ETIQUETA_EVENTO[opcion])}
                       </option>
                     ))}
                   </select>
@@ -214,112 +369,10 @@ export default async function EventoLinea({
                 confirmacion={t("Confirmar borrado")}
               />
             </form>
-          </details>
-
-          <details className="accion">
-            <summary>📎 {t("Adjuntar archivo")}</summary>
-            <form action={subirAdjunto} className="mt-2 flex flex-wrap items-center gap-2">
-              <input type="hidden" name="evento_id" value={evento.id} />
-              <input type="hidden" name="cliente_id" value={evento.cliente_id} />
-              <input
-                type="file"
-                name="archivos"
-                multiple
-                required
-                className="text-sm"
-                style={{ color: "var(--texto-2)" }}
-              />
-              <button type="submit" className="boton-suave text-xs">{t("Subir")}</button>
-              <span className="text-xs" style={{ color: "var(--texto-3)" }}>
-                hasta {MAX_ARCHIVOS_POR_SUBIDA}, {tamanoLegible(LIMITE_BYTES)} cada uno
-              </span>
-            </form>
-          </details>
-
-          {seguible && (
-            <details className="accion" open={actualizaciones.length > 0 && !cerrado}>
-              <summary>
-                {actualizaciones.length === 0
-                  ? "Actualizar"
-                  : `${actualizaciones.length} actualización${
-                      actualizaciones.length === 1 ? "" : "es"
-                    }`}
-              </summary>
-
-              {actualizaciones.length > 0 && (
-                <ol
-                  className="mt-2 space-y-2 pl-3"
-                  style={{ borderLeft: "2px solid var(--borde)" }}
-                >
-                  {actualizaciones.map((a) => (
-                    <li key={a.id}>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs" style={{ color: "var(--texto-3)" }}>
-                          {textoRelativo(a.creado_en)}
-                        </span>
-                        {a.estado_nuevo && (
-                          <Pastilla
-                            fondo={colorSeguimiento(a.estado_nuevo).fondo}
-                            texto={colorSeguimiento(a.estado_nuevo).texto}
-                          >
-                            {a.estado_anterior
-                              ? `${t(ETIQUETA_SEGUIMIENTO[a.estado_anterior])} → ${
-                                  ETIQUETA_SEGUIMIENTO[a.estado_nuevo]
-                                }`
-                              : ETIQUETA_SEGUIMIENTO[a.estado_nuevo]}
-                          </Pastilla>
-                        )}
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <p
-                          className="text-sm whitespace-pre-wrap flex-1"
-                          style={{ color: "var(--texto-2)" }}
-                        >
-                          {a.cuerpo}
-                        </p>
-                        <form action={borrarActualizacion} className="shrink-0">
-                          <input type="hidden" name="id" value={a.id} />
-                          <input type="hidden" name="cliente_id" value={evento.cliente_id} />
-                          <BotonBorrar etiqueta="×" confirmacion="borrar" />
-                        </form>
-                      </div>
-                    </li>
-                  ))}
-                </ol>
-              )}
-
-              <form action={actualizarEvento} className="mt-2.5 space-y-2">
-                <input type="hidden" name="evento_id" value={evento.id} />
-                <input type="hidden" name="cliente_id" value={evento.cliente_id} />
-                <textarea
-                  name="cuerpo"
-                  required
-                  rows={2}
-                  className="campo"
-                  placeholder={t("Qué pasó con esto")}
-                />
-                <div className="flex items-center gap-2">
-                  <select
-                    name="estado_nuevo"
-                    className="campo"
-                    style={{ width: "auto" }}
-                    defaultValue=""
-                  >
-                    <option value="">{t("Sin cambiar el estado")}</option>
-                    {ESTADOS_SEGUIMIENTO.filter((e) => e !== estado).map((e) => (
-                      <option key={e} value={e}>
-                        Marcar como {ETIQUETA_SEGUIMIENTO[e].toLowerCase()}
-                      </option>
-                    ))}
-                  </select>
-                  <button type="submit" className="boton">{t("Añadir")}</button>
-                </div>
-              </form>
-            </details>
-          )}
           </div>
-        </div>
+        </details>
+        )}
       </div>
-    </div>
+    </article>
   );
 }

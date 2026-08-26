@@ -63,7 +63,8 @@ export default async function Hoy() {
   return (
     <>
       <div className="mb-6">
-        <h1 className="text-xl font-semibold tracking-tight">{t("Hoy")}</h1>
+        <p className="eyebrow mb-1">{t("Panorama")}</p>
+        <h1 className="titulo-pagina">{t("Hoy")}</h1>
         <p className="text-sm mt-1" style={{ color: "var(--texto-2)" }}>
           {hitos.length} hito{hitos.length === 1 ? "" : "s"} en 30 días ·{" "}
           {vencidos.length} compromiso{vencidos.length === 1 ? "" : "s"} vencido
@@ -76,7 +77,7 @@ export default async function Hoy() {
         {abiertos.length === 0 ? (
           <Vacio>Nada abierto. Ninguna incidencia, bloqueo ni riesgo sin cerrar.</Vacio>
         ) : (
-          <div className="tarjeta divide-y" style={{ borderColor: "var(--borde)" }}>
+          <div className="tarjeta py-1">
             {abiertosT.map((e) => (
               <EventoLinea
                 key={e.id}
@@ -84,6 +85,7 @@ export default async function Hoy() {
                 actualizaciones={actualizacionesT[e.id] ?? []}
                 adjuntos={adjuntos[e.id] ?? []}
                 mostrarCliente
+                compacto
               />
             ))}
           </div>
@@ -92,7 +94,7 @@ export default async function Hoy() {
 
       <Seccion titulo={t("Hitos próximos")} contador={hitos.length}>
         {hitos.length === 0 ? (
-          <Vacio>{t("Sin hitos en los próximos 30 días.")}</Vacio>
+          <Vacio icono="calendario">{t("Sin hitos en los próximos 30 días.")}</Vacio>
         ) : (
           <div className="tarjeta divide-y" style={{ borderColor: "var(--borde)" }}>
             {hitosT.map((h) => {
@@ -138,7 +140,7 @@ export default async function Hoy() {
 
       <Seccion titulo={t("Compromisos abiertos")} contador={compromisos.length}>
         {compromisos.length === 0 ? (
-          <Vacio>{t("Nada pendiente esta semana.")}</Vacio>
+          <Vacio icono="check">{t("Nada pendiente esta semana.")}</Vacio>
         ) : (
           <div className="tarjeta divide-y" style={{ borderColor: "var(--borde)" }}>
             {compromisosT.map((c) => {
@@ -173,7 +175,7 @@ export default async function Hoy() {
 
       <Seccion titulo={t("Clientes sin novedad")} contador={silencio.length}>
         {silencio.length === 0 ? (
-          <Vacio>{t("Todos los clientes tienen registro reciente.")}</Vacio>
+          <Vacio icono="check">{t("Todos los clientes tienen registro reciente.")}</Vacio>
         ) : (
           <div className="tarjeta divide-y" style={{ borderColor: "var(--borde)" }}>
             {silencio.map((c) => (
@@ -196,39 +198,13 @@ export default async function Hoy() {
       </Seccion>
 
       <Seccion titulo={t("Últimos registros")}>
-        {eventos.length === 0 ? (
-          <Vacio>{t("Todavía no has registrado nada.")}</Vacio>
+        {eventosT.length === 0 ? (
+          <Vacio icono="vacio">{t("Todavía no has registrado nada.")}</Vacio>
         ) : (
-          <div className="tarjeta divide-y" style={{ borderColor: "var(--borde)" }}>
-            {eventosT.map((e) => {
-              const color = colorEvento(e.tipo);
-              return (
-                <Link
-                  key={e.id}
-                  href={`/clientes/${e.cliente_id}/timeline`}
-                  className="flex items-start gap-3 px-4 py-3 hover:bg-[var(--superficie-2)] transition-colors"
-                  style={{ borderColor: "var(--borde)" }}
-                >
-                  <span
-                    className="text-xs shrink-0 w-14 pt-0.5"
-                    style={{ color: "var(--texto-3)" }}
-                  >
-                    {fechaCorta(e.fecha_evento)}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Pastilla fondo={color.fondo} texto={color.texto}>
-                        {t(ETIQUETA_EVENTO[e.tipo])}
-                      </Pastilla>
-                      <span className="text-sm">{e.titulo}</span>
-                    </div>
-                    <p className="text-xs mt-0.5" style={{ color: "var(--texto-3)" }}>
-                      {e.cliente_nombre}
-                    </p>
-                  </div>
-                </Link>
-              );
-            })}
+          <div className="tarjeta py-1">
+            {eventosT.map((e) => (
+              <EventoLinea key={e.id} evento={e} mostrarCliente compacto />
+            ))}
           </div>
         )}
       </Seccion>

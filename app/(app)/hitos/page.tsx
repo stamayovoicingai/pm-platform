@@ -32,7 +32,8 @@ export default async function Hitos() {
   return (
     <>
       <div className="mb-5">
-        <h1 className="text-xl font-semibold tracking-tight">{t("Hitos")}</h1>
+        <p className="eyebrow mb-1">{t("Fechas comprometidas")}</p>
+        <h1 className="titulo-pagina">{t("Hitos")}</h1>
         <p className="text-sm mt-0.5" style={{ color: "var(--texto-2)" }}>
           {abiertos.length} abiertos
           {movidos.length > 0 &&
@@ -41,7 +42,7 @@ export default async function Hitos() {
       </div>
 
       {abiertos.length === 0 ? (
-        <Vacio>{t("No hay hitos abiertos.")}</Vacio>
+        <Vacio icono="calendario">{t("No hay hitos abiertos.")}</Vacio>
       ) : (
         <div className="tarjeta divide-y" style={{ borderColor: "var(--borde)" }}>
           {abiertos.map((h) => {

@@ -5,11 +5,13 @@ import { useRouter } from "next/navigation";
 import { useT } from "@/components/Idioma";
 import type { Resultado } from "@/app/api/buscar/route";
 
-const ICONO: Record<Resultado["clase"], string> = {
-  cliente: "◆",
-  evento: "·",
-  hito: "◷",
-  compromiso: "✓",
+import Icono, { type NombreIcono } from "./Icono";
+
+const ICONO: Record<Resultado["clase"], NombreIcono> = {
+  cliente: "equipo",
+  evento: "hilo",
+  hito: "calendario",
+  compromiso: "check",
 };
 
 /**
@@ -81,8 +83,11 @@ export default function Buscador() {
         className="campo flex items-center justify-between"
         style={{ padding: "0.35rem 0.55rem", color: "var(--texto-3)", cursor: "pointer" }}
       >
-        <span className="text-xs">{t("Buscar")}</span>
-        <span className="text-xs font-mono">⌘K</span>
+        <span className="text-xs flex items-center gap-1.5">
+          <Icono nombre="buscar" tam={12} />
+          {t("Buscar")}
+        </span>
+        <span className="num text-xs">⌘K</span>
       </button>
     );
   }
@@ -132,8 +137,8 @@ export default function Buscador() {
                     className="w-full text-left px-4 py-2.5 flex items-center gap-3"
                     style={{ background: i === activo ? "var(--superficie-2)" : "transparent" }}
                   >
-                    <span className="text-xs shrink-0 w-3" style={{ color: "var(--texto-3)" }}>
-                      {ICONO[r.clase]}
+                    <span className="shrink-0" style={{ color: "var(--texto-3)" }}>
+                      <Icono nombre={ICONO[r.clase]} tam={13} />
                     </span>
                     <span className="text-sm flex-1 min-w-0 truncate">{r.titulo}</span>
                     <span className="text-xs shrink-0" style={{ color: "var(--texto-3)" }}>

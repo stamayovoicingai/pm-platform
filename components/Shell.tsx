@@ -5,6 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { colorFase, ETIQUETA_FASE, type Fase } from "@/lib/dominio";
 import Buscador from "./Buscador";
+import Modal from "./Modal";
+import FormularioEvento from "./FormularioEvento";
 
 import { useT } from "@/components/Idioma";
 export type ClienteSidebar = {
@@ -55,6 +57,7 @@ function Item({
 export default function Shell({
   clientes,
   usuario,
+  hoy,
   esAdmin,
   puedeRegistrar,
   salir,
@@ -62,6 +65,8 @@ export default function Shell({
 }: {
   clientes: ClienteSidebar[];
   usuario: string;
+  /** La fecha de hoy en la zona de la app, calculada en servidor. */
+  hoy: string;
   esAdmin: boolean;
   puedeRegistrar: boolean;
   salir: React.ReactNode;
@@ -108,14 +113,18 @@ export default function Shell({
 
         <div className="px-2 pb-2 space-y-2">
           {puedeRegistrar && (
-            <Link
-              href="/registrar"
-              onClick={cerrar}
-              className="boton w-full justify-center"
-              style={{ textDecoration: "none" }}
+            <Modal
+              etiqueta={t("Registrar")}
+              titulo={t("Nuevo registro")}
+              descripcion={t("Elige el cliente y escribe lo que pasó.")}
+              variante="principal"
             >
-              {t("Registrar")}
-            </Link>
+              <FormularioEvento
+                hoy={hoy}
+                redirigir
+                clientes={clientes.map((c) => ({ id: c.id, nombre: c.nombre }))}
+              />
+            </Modal>
           )}
           <Buscador />
         </div>

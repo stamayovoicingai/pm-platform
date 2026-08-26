@@ -44,13 +44,13 @@ function Fila({
         : "var(--riesgo)";
 
   return (
-    <tr style={{ borderTop: "1px solid var(--borde)" }}>
-      <td className="px-4 py-2.5">{concepto}</td>
-      <td className="text-right px-3 py-2.5" style={{ color: "var(--texto-2)" }}>
+    <tr>
+      <td>{concepto}</td>
+      <td className="derecha num" style={{ color: "var(--texto-2)" }}>
         {esperado}
       </td>
       <td className="text-right px-3 py-2.5 font-medium">{real}</td>
-      <td className="text-right px-4 py-2.5" style={{ color }}>
+      <td className="derecha num" style={{ color }}>
         {desvio === null ? "—" : `${desvio > 0 ? "+" : ""}${desvio.toFixed(0)}%`}
       </td>
     </tr>
@@ -86,13 +86,13 @@ export default async function LineaBaseCard({
     <div className="mb-6">
       {hayComparacion && (
         <div className="tarjeta overflow-x-auto mb-3">
-          <table className="w-full text-sm" style={{ minWidth: "30rem" }}>
+          <table className="tabla" style={{ minWidth: "30rem" }}>
             <thead>
-              <tr style={{ color: "var(--texto-3)" }}>
-                <th className="text-left font-medium px-4 py-2.5">{t("Mes en curso vs línea base")}</th>
-                <th className="text-right font-medium px-3 py-2.5">{t("Esperado")}</th>
-                <th className="text-right font-medium px-3 py-2.5">{t("Real")}</th>
-                <th className="text-right font-medium px-4 py-2.5">{t("Desvío")}</th>
+              <tr>
+                <th >{t("Mes en curso vs línea base")}</th>
+                <th className="derecha">{t("Esperado")}</th>
+                <th className="derecha">{t("Real")}</th>
+                <th className="derecha">{t("Desvío")}</th>
               </tr>
             </thead>
             <tbody>

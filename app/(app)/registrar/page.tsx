@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { clientesSidebar } from "@/lib/consultas/clientes";
 import FormularioEvento from "@/components/FormularioEvento";
+import Modal from "@/components/Modal";
 import { crearTraductor } from "@/lib/i18n";
 import { leerIdioma } from "@/lib/preferencias";
 import { hoy } from "@/lib/fechas";
@@ -14,7 +15,8 @@ export default async function Registrar() {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="text-xl font-semibold tracking-tight mb-1">{t("Registrar")}</h1>
+      <p className="eyebrow mb-1">{t("Captura rápida")}</p>
+      <h1 className="titulo-pagina mb-1">{t("Registrar")}</h1>
       <p className="text-sm mb-5" style={{ color: "var(--texto-2)" }}>
         {t("Lo que acabas de saber, sin tener que buscar el cliente primero.")}
       </p>
