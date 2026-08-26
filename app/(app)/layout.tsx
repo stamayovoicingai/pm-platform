@@ -3,6 +3,7 @@ import { sesionActual, cerrarSesion } from "@/lib/auth";
 import { clientesSidebar } from "@/lib/consultas/clientes";
 import Shell from "@/components/Shell";
 import { ProveedorIdioma } from "@/components/Idioma";
+import { puedeAdministrar, puedeEditar } from "@/lib/roles";
 
 import { crearTraductor } from "@/lib/i18n";
 import { leerIdioma } from "@/lib/preferencias";
@@ -27,6 +28,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <Shell
       clientes={clientes}
       usuario={sesion.nombre}
+      esAdmin={puedeAdministrar(sesion.rol)}
+      puedeRegistrar={puedeEditar(sesion.rol)}
       salir={
         <form action={salir}>
           <button type="submit" className="text-xs" style={{ color: "var(--texto-3)" }}>{t("Salir")}</button>

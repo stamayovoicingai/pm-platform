@@ -22,9 +22,14 @@ import { useT } from "@/components/Idioma";
 export default function FormularioEvento({
   clienteId,
   hoy,
+  clientes,
+  redirigir = false,
 }: {
-  clienteId: string;
+  clienteId?: string;
   hoy: string;
+  /** Si se pasan, el formulario pide a qué cliente va. */
+  clientes?: { id: string; nombre: string }[];
+  redirigir?: boolean;
 }) {
   const t = useT();
   const formulario = useRef<HTMLFormElement>(null);
@@ -52,7 +57,26 @@ export default function FormularioEvento({
       }}
       className="tarjeta p-4 space-y-3"
     >
-      <input type="hidden" name="cliente_id" value={clienteId} />
+      {clientes ? (
+        <div>
+          <label className="etiqueta" htmlFor="cliente_id">
+            {t("Cliente")}
+          </label>
+          <select id="cliente_id" name="cliente_id" required className="campo" defaultValue="">
+            <option value="" disabled>
+              {t("Elige un cliente")}
+            </option>
+            {clientes.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.nombre}
+              </option>
+            ))}
+          </select>
+        </div>
+      ) : (
+        <input type="hidden" name="cliente_id" value={clienteId} />
+      )}
+      {redirigir && <input type="hidden" name="redirigir" value="1" />}
       <input type="hidden" name="tipo" value={tipo} />
       <input type="hidden" name="seguir" value={seguir ? "si" : "no"} />
 

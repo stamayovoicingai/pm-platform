@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { colorFase, ETIQUETA_FASE, type Fase } from "@/lib/dominio";
+import Buscador from "./Buscador";
 
 import { useT } from "@/components/Idioma";
 export type ClienteSidebar = {
@@ -54,11 +55,15 @@ function Item({
 export default function Shell({
   clientes,
   usuario,
+  esAdmin,
+  puedeRegistrar,
   salir,
   children,
 }: {
   clientes: ClienteSidebar[];
   usuario: string;
+  esAdmin: boolean;
+  puedeRegistrar: boolean;
   salir: React.ReactNode;
   children: React.ReactNode;
 }) {
@@ -101,6 +106,20 @@ export default function Shell({
           <Link href="/" onClick={cerrar} className="font-semibold tracking-tight">{t("PM Platform")}</Link>
         </div>
 
+        <div className="px-2 pb-2 space-y-2">
+          {puedeRegistrar && (
+            <Link
+              href="/registrar"
+              onClick={cerrar}
+              className="boton w-full justify-center"
+              style={{ textDecoration: "none" }}
+            >
+              {t("Registrar")}
+            </Link>
+          )}
+          <Buscador />
+        </div>
+
         <nav className="px-2 space-y-0.5">
           {SECCIONES.map((s) => (
             <Item
@@ -119,15 +138,17 @@ export default function Shell({
             className="text-xs font-semibold uppercase tracking-wide"
             style={{ color: "var(--texto-3)" }}
           >{t("Clientes")}</span>
-          <Link
-            href="/clientes/nuevo"
-            onClick={cerrar}
-            className="text-sm leading-none"
-            style={{ color: "var(--texto-3)" }}
-            title={t("Nuevo cliente")}
-          >
-            +
-          </Link>
+          {puedeRegistrar && (
+            <Link
+              href="/clientes/nuevo"
+              onClick={cerrar}
+              className="text-sm leading-none"
+              style={{ color: "var(--texto-3)" }}
+              title={t("Nuevo cliente")}
+            >
+              +
+            </Link>
+          )}
         </div>
 
         {clientes.length > 6 && (
@@ -179,15 +200,27 @@ export default function Shell({
           className="px-4 py-3 flex items-center justify-between shrink-0"
           style={{ borderTop: "1px solid var(--borde)" }}
         >
-          <Link
-            href="/perfil"
-            onClick={cerrar}
-            className="text-xs truncate"
-            style={{ color: "var(--texto-3)" }}
-            title={usuario}
-          >
-            {usuario}
-          </Link>
+          <div className="flex items-center gap-2 min-w-0">
+            <Link
+              href="/perfil"
+              onClick={cerrar}
+              className="text-xs truncate"
+              style={{ color: "var(--texto-3)" }}
+              title={usuario}
+            >
+              {usuario}
+            </Link>
+            {esAdmin && (
+              <Link
+                href="/equipo"
+                onClick={cerrar}
+                className="text-xs shrink-0"
+                style={{ color: "var(--texto-3)" }}
+              >
+                · {t("Equipo")}
+              </Link>
+            )}
+          </div>
           {salir}
         </div>
       </aside>

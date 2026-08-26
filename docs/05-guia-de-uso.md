@@ -147,6 +147,33 @@ sobreescribiría lo que escribiste con su versión en inglés.
 Si no hay proveedor de IA configurado, el inglés se aplica solo a la interfaz y tu
 contenido se ve tal como lo escribiste.
 
+## Atajos que ahorran clics
+
+**Registrar** — el botón verde del menú lateral abre el registro sin tener que buscar el
+cliente primero: eliges a cuál va y, al guardar, te lleva a su timeline para que veas
+dónde aterrizó.
+
+**⌘K** (o Ctrl+K) abre el buscador desde cualquier pantalla. Encuentra clientes,
+registros, hitos y compromisos, y te lleva directo a la pestaña correspondiente. Con las
+flechas eliges y con Enter saltas.
+
+## Equipo y permisos
+
+En **Equipo**, un administrador invita a alguien con un rol:
+
+| Rol | Puede |
+|---|---|
+| Administrador | Todo, incluido invitar, borrar clientes y cambiar ajustes |
+| Editor | Registrar, editar y borrar registros |
+| Lector | Solo ver |
+
+La invitación genera un enlace que caduca en 7 días y **se muestra una sola vez**: en la
+base solo queda su hash, así que ni con acceso a los datos se puede reconstruir. Si se
+pierde, se revoca y se crea otro.
+
+El rol se consulta en cada petición, no se guarda en la sesión: quitarle permisos a
+alguien surte efecto al momento y no cuando caduque su sesión.
+
 ## Pantallas
 
 - **Hoy** — la de la mañana.

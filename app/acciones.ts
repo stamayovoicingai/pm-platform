@@ -3,9 +3,16 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { randomBytes, createHash } from "node:crypto";
 import bcrypt from "bcryptjs";
 import { sql, uno, enTransaccion } from "@/lib/db";
-import { sesionActual } from "@/lib/auth";
+import {
+  sesionActual,
+  exigirEditor,
+  exigirAdmin,
+  crearSesion,
+} from "@/lib/auth";
+import { ROLES } from "@/lib/roles";
 import { guardarDiaMetricas } from "@/lib/metricasGuardar";
 import {
   TEMAS,
@@ -48,6 +55,137 @@ function campo(datos: FormData, nombre: string) {
 
 
 
+
+// ---------------------------------------------------------------- equipo
+
+export type ResultadoInvitacion =
+  | { ok: true; enlace: string; email: string }
+  | { ok: false; error: string }
+  | null;
+
+/**
+ * Crea una invitación y devuelve su enlace **una sola vez**.
+ *
+ * En la base solo queda el hash del token, así que ni yo ni nadie con acceso a
+ * los datos puede reconstruir un enlace pendiente. Si se pierde, se revoca y se
+ * crea otro. El enlace se devuelve en la respuesta y no por la URL, que acaba
+ * en historiales y registros del servidor.
+ */
+export async function crearInvitacion(
+  _previo: ResultadoInvitacion,
+  datos: FormData,
+): Promise<ResultadoInvitacion> {
+  try {
+    const sesion = await exigirAdmin();
+
+    const v = z
+      .object({
+        email: z.email("Ese email no es válido"),
+        nombre: opcional,
+        rol: z.enum(ROLES),
+      })
+      .parse({
+        email: campo(datos, "email").trim().toLowerCase(),
+        nombre: campo(datos, "nombre"),
+        rol: campo(datos, "rol"),
+      });
+
+    const existe = await uno("select 1 from usuario where email = $1", [v.email]);
+    if (existe) return { ok: false, error: "Ya hay una cuenta con ese email" };
+
+    const token = randomBytes(32).toString("base64url");
+    const hash = createHash("sha256").update(token).digest("hex");
+
+    await sql(
+      `insert into invitacion (email, nombre, rol, token_hash, creada_por, expira_en)
+       values ($1, $2, $3, $4, $5, now() + interval '7 days')`,
+      [v.email, v.nombre, v.rol, hash, sesion.id],
+    );
+
+    const base = process.env.APP_URL?.replace(/\/$/, "") ?? "";
+    revalidatePath("/equipo");
+    return { ok: true, email: v.email, enlace: `${base}/invitacion/${token}` };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : "No se pudo crear" };
+  }
+}
+
+export async function revocarInvitacion(datos: FormData) {
+  await exigirAdmin();
+  const id = z.uuid().parse(campo(datos, "id"));
+  await sql("delete from invitacion where id = $1 and usada_en is null", [id]);
+  revalidatePath("/equipo");
+}
+
+export async function cambiarRol(datos: FormData) {
+  const sesion = await exigirAdmin();
+  const id = z.uuid().parse(campo(datos, "id"));
+  const rol = z.enum(ROLES).parse(campo(datos, "rol"));
+
+  if (id === sesion.id) {
+    throw new Error("No puedes cambiar tu propio rol: pídeselo a otro administrador.");
+  }
+
+  await sql("update usuario set rol = $2 where id = $1", [id, rol]);
+  revalidatePath("/equipo");
+}
+
+export async function cambiarAcceso(datos: FormData) {
+  const sesion = await exigirAdmin();
+  const id = z.uuid().parse(campo(datos, "id"));
+  const activo = campo(datos, "activo") === "1";
+
+  if (id === sesion.id) throw new Error("No puedes desactivar tu propia cuenta.");
+
+  await sql("update usuario set activo = $2 where id = $1", [id, activo]);
+  revalidatePath("/equipo");
+}
+
+/** Acepta una invitación: crea la cuenta y abre sesión. */
+export async function aceptarInvitacion(datos: FormData) {
+  const token = campo(datos, "token");
+  const nombre = texto.parse(campo(datos, "nombre"));
+  const password = campo(datos, "password");
+  const repetir = campo(datos, "repetir");
+
+  if (password.length < 10) throw new Error("La contraseña debe tener al menos 10 caracteres");
+  if (password !== repetir) throw new Error("Las contraseñas no coinciden");
+
+  const hash = createHash("sha256").update(token).digest("hex");
+
+  const invitacion = await uno<{ id: string; email: string; rol: string }>(
+    `select id, email, rol from invitacion
+     where token_hash = $1 and usada_en is null and expira_en > now()`,
+    [hash],
+  );
+  if (!invitacion) throw new Error("Esta invitación no es válida o ya caducó");
+
+  const sesion = await enTransaccion(async (q) => {
+    const [usuario] = await q<{ id: string; email: string; nombre: string; rol: string }>(
+      `insert into usuario (email, nombre, password_hash, rol)
+       values ($1, $2, $3, $4)
+       returning id, email, nombre, rol`,
+      [invitacion.email, nombre, await bcrypt.hash(password, 12), invitacion.rol],
+    );
+
+    await q(
+      "update invitacion set usada_en = now(), usuario_id = $2 where id = $1",
+      [invitacion.id, usuario.id],
+    );
+
+    return usuario;
+  });
+
+  await crearSesion({
+    id: sesion.id,
+    email: sesion.email,
+    nombre: sesion.nombre,
+    rol: sesion.rol as never,
+  });
+
+  redirect("/");
+}
+
 // ---------------------------------------------------------------- preferencias
 
 export async function cambiarTema(datos: FormData) {
@@ -63,6 +201,7 @@ export async function cambiarIdioma(datos: FormData) {
 }
 
 export async function enviarGuiaSlack() {
+  await exigirEditor();
   const { slackConfigurado } = await import("@/lib/slack/cliente");
   if (!slackConfigurado()) throw new Error("Slack no está configurado");
 
@@ -115,6 +254,7 @@ const EsquemaCliente = z.object({
 });
 
 export async function crearCliente(datos: FormData) {
+  await exigirEditor();
   const v = EsquemaCliente.parse({
     nombre: campo(datos, "nombre"),
     partner_id: campo(datos, "partner_id"),
@@ -135,6 +275,7 @@ export async function crearCliente(datos: FormData) {
 }
 
 export async function actualizarCliente(datos: FormData) {
+  await exigirEditor();
   const id = z.uuid().parse(campo(datos, "id"));
   const v = EsquemaCliente.parse({
     nombre: campo(datos, "nombre"),
@@ -174,6 +315,7 @@ export async function actualizarCliente(datos: FormData) {
 }
 
 export async function archivarCliente(datos: FormData) {
+  await exigirEditor();
   const id = z.uuid().parse(campo(datos, "id"));
   const archivar = campo(datos, "archivar") === "1";
   await sql("update cliente set archivado = $2, actualizado_en = now() where id = $1", [
@@ -185,6 +327,7 @@ export async function archivarCliente(datos: FormData) {
 }
 
 export async function borrarLineaBase(datos: FormData) {
+  await exigirEditor();
   const clienteId = z.uuid().parse(campo(datos, "cliente_id"));
   await sql("delete from linea_base where id = $1", [clienteId]);
   revalidatePath(`/clientes/${clienteId}/metricas`);
@@ -198,6 +341,7 @@ export async function borrarLineaBase(datos: FormData) {
  * destruir datos y debe demostrarlo.
  */
 export async function borrarCliente(datos: FormData) {
+  await exigirAdmin();
   const id = z.uuid().parse(campo(datos, "id"));
   const confirmacion = campo(datos, "confirmacion").trim();
 
@@ -232,6 +376,7 @@ const EsquemaEvento = z.object({
 });
 
 export async function crearEvento(datos: FormData) {
+  await exigirEditor();
   const v = EsquemaEvento.parse({
     cliente_id: campo(datos, "cliente_id"),
     tipo: campo(datos, "tipo"),
@@ -263,8 +408,15 @@ export async function crearEvento(datos: FormData) {
 
   await guardarArchivos(creado!.id, datos.getAll("archivos") as File[]);
 
+  revalidatePath(`/clientes/${v.cliente_id}/timeline`);
   revalidatePath(`/clientes/${v.cliente_id}`);
   revalidatePath("/");
+
+  // Desde el registro rápido se lleva al usuario al cliente, para que vea
+  // dónde aterrizó lo que acaba de escribir.
+  if (campo(datos, "redirigir") === "1") {
+    redirect(`/clientes/${v.cliente_id}/timeline`);
+  }
 }
 
 /**
@@ -273,6 +425,7 @@ export async function crearEvento(datos: FormData) {
  * que el hilo se lee como una historia: qué se supo, cuándo, y qué cambió.
  */
 export async function actualizarEvento(datos: FormData) {
+  await exigirEditor();
   const v = z
     .object({
       evento_id: z.uuid(),
@@ -318,6 +471,7 @@ export async function actualizarEvento(datos: FormData) {
 
 /** Abre el seguimiento de un evento que se registró sin él. */
 export async function activarSeguimiento(datos: FormData) {
+  await exigirEditor();
   const eventoId = z.uuid().parse(campo(datos, "evento_id"));
   const clienteId = z.uuid().parse(campo(datos, "cliente_id"));
 
@@ -332,6 +486,7 @@ export async function activarSeguimiento(datos: FormData) {
 }
 
 export async function borrarEvento(datos: FormData) {
+  await exigirEditor();
   const id = z.uuid().parse(campo(datos, "id"));
   const clienteId = z.uuid().parse(campo(datos, "cliente_id"));
   await sql("delete from evento where id = $1", [id]);
@@ -380,6 +535,7 @@ async function guardarArchivos(eventoId: string, archivos: File[]) {
 }
 
 export async function subirAdjunto(datos: FormData) {
+  await exigirEditor();
   const eventoId = z.uuid().parse(campo(datos, "evento_id"));
   const clienteId = z.uuid().parse(campo(datos, "cliente_id"));
 
@@ -390,6 +546,7 @@ export async function subirAdjunto(datos: FormData) {
 }
 
 export async function borrarAdjunto(datos: FormData) {
+  await exigirEditor();
   const id = z.uuid().parse(campo(datos, "id"));
   const clienteId = z.uuid().parse(campo(datos, "cliente_id"));
 
@@ -403,6 +560,7 @@ export async function borrarAdjunto(datos: FormData) {
 // ---------------------------------------------------------------- edición
 
 export async function editarEvento(datos: FormData) {
+  await exigirEditor();
   const v = z
     .object({
       id: z.uuid(),
@@ -435,6 +593,7 @@ export async function editarEvento(datos: FormData) {
 }
 
 export async function borrarActualizacion(datos: FormData) {
+  await exigirEditor();
   const id = z.uuid().parse(campo(datos, "id"));
   const clienteId = z.uuid().parse(campo(datos, "cliente_id"));
   await sql("delete from evento_actualizacion where id = $1", [id]);
@@ -442,6 +601,7 @@ export async function borrarActualizacion(datos: FormData) {
 }
 
 export async function editarHito(datos: FormData) {
+  await exigirEditor();
   const v = z
     .object({
       id: z.uuid(),
@@ -473,6 +633,7 @@ export async function editarHito(datos: FormData) {
 }
 
 export async function borrarHito(datos: FormData) {
+  await exigirEditor();
   const id = z.uuid().parse(campo(datos, "id"));
   const clienteId = z.uuid().parse(campo(datos, "cliente_id"));
   await sql("delete from hito where id = $1", [id]);
@@ -482,6 +643,7 @@ export async function borrarHito(datos: FormData) {
 }
 
 export async function editarCompromiso(datos: FormData) {
+  await exigirEditor();
   const v = z
     .object({
       id: z.uuid(),
@@ -516,6 +678,7 @@ export async function editarCompromiso(datos: FormData) {
 }
 
 export async function borrarCompromiso(datos: FormData) {
+  await exigirEditor();
   const id = z.uuid().parse(campo(datos, "id"));
   const clienteId = z.uuid().parse(campo(datos, "cliente_id"));
   await sql("delete from compromiso where id = $1", [id]);
@@ -525,6 +688,7 @@ export async function borrarCompromiso(datos: FormData) {
 }
 
 export async function editarContacto(datos: FormData) {
+  await exigirEditor();
   const v = z
     .object({
       id: z.uuid(),
@@ -552,6 +716,7 @@ export async function editarContacto(datos: FormData) {
 }
 
 export async function borrarMetricaDia(datos: FormData) {
+  await exigirEditor();
   const clienteId = z.uuid().parse(campo(datos, "cliente_id"));
   const dia = fecha.parse(campo(datos, "fecha"));
   await sql("delete from metrica_dia where cliente_id = $1 and fecha = $2", [clienteId, dia]);
@@ -561,6 +726,7 @@ export async function borrarMetricaDia(datos: FormData) {
 // ---------------------------------------------------------------- hitos
 
 export async function crearHito(datos: FormData) {
+  await exigirEditor();
   const v = z
     .object({
       cliente_id: z.uuid(),
@@ -593,6 +759,7 @@ export async function crearHito(datos: FormData) {
  * responder "esta salida se ha movido tres veces y siempre por lo mismo".
  */
 export async function moverFechaHito(datos: FormData) {
+  await exigirEditor();
   const v = z
     .object({
       id: z.uuid(),
@@ -635,6 +802,7 @@ export async function moverFechaHito(datos: FormData) {
 }
 
 export async function cambiarEstadoHito(datos: FormData) {
+  await exigirEditor();
   const v = z
     .object({
       id: z.uuid(),
@@ -656,6 +824,7 @@ export async function cambiarEstadoHito(datos: FormData) {
 // ---------------------------------------------------------------- compromisos
 
 export async function crearCompromiso(datos: FormData) {
+  await exigirEditor();
   const v = z
     .object({
       cliente_id: z.uuid(),
@@ -688,6 +857,7 @@ export async function crearCompromiso(datos: FormData) {
 }
 
 export async function cambiarEstadoCompromiso(datos: FormData) {
+  await exigirEditor();
   const v = z
     .object({
       id: z.uuid(),
@@ -737,6 +907,7 @@ const numero = (valor: string, campoNombre: string, max?: number) => {
  * que la fila a medias ensucie los promedios.
  */
 export async function guardarMetricasDia(datos: FormData) {
+  await exigirEditor();
   const fechaDia = fecha.parse(campo(datos, "fecha"));
   const ids = datos.getAll("cliente_id").map((v) => z.uuid().parse(String(v)));
 
@@ -756,6 +927,7 @@ export async function guardarMetricasDia(datos: FormData) {
 }
 
 export async function guardarMetricaMes(datos: FormData) {
+  await exigirEditor();
   const clienteId = z.uuid().parse(campo(datos, "cliente_id"));
   const mes = campo(datos, "periodo"); // 'YYYY-MM' del input type=month
   if (!/^\d{4}-\d{2}$/.test(mes)) throw new Error("Mes inválido");
@@ -789,6 +961,7 @@ export async function guardarMetricaMes(datos: FormData) {
 }
 
 export async function borrarMetricaMes(datos: FormData) {
+  await exigirEditor();
   const id = z.uuid().parse(campo(datos, "id"));
   const clienteId = z.uuid().parse(campo(datos, "cliente_id"));
   await sql("delete from metrica_mes where id = $1", [id]);
@@ -812,6 +985,7 @@ const CAMPOS_BASE = [
  * de proyecto es información de producto, no una corrección silenciosa.
  */
 export async function guardarLineaBase(datos: FormData) {
+  await exigirEditor();
   const clienteId = z.uuid().parse(campo(datos, "cliente_id"));
 
   const valores = {
@@ -886,6 +1060,7 @@ export async function guardarLineaBase(datos: FormData) {
 }
 
 export async function guardarObjetivoMes(datos: FormData) {
+  await exigirEditor();
   const clienteId = z.uuid().parse(campo(datos, "cliente_id"));
   const periodo = fecha.parse(campo(datos, "periodo"));
   const llamadas = numero(campo(datos, "llamadas_comprometidas"), "Llamadas");
@@ -914,6 +1089,7 @@ export async function guardarObjetivoMes(datos: FormData) {
 // ---------------------------------------------------------------- contactos
 
 export async function crearContacto(datos: FormData) {
+  await exigirEditor();
   const v = z
     .object({
       cliente_id: z.uuid(),
@@ -942,6 +1118,7 @@ export async function crearContacto(datos: FormData) {
 }
 
 export async function borrarContacto(datos: FormData) {
+  await exigirEditor();
   const id = z.uuid().parse(campo(datos, "id"));
   const clienteId = z.uuid().parse(campo(datos, "cliente_id"));
   await sql("delete from contacto where id = $1", [id]);

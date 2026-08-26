@@ -219,6 +219,48 @@ export const EN: Record<string, string> = {
   "Últimos avisos enviados": "Last notifications sent",
   "Todavía ninguno.": "None yet.",
 
+  // Equipo y roles
+  Equipo: "Team",
+  persona: "person",
+  personas: "people",
+  Administrador: "Admin",
+  Editor: "Editor",
+  Lector: "Viewer",
+  "Todo, incluido invitar personas, borrar clientes y cambiar ajustes.":
+    "Everything, including inviting people, deleting clients and changing settings.",
+  "Registrar, editar y borrar registros. No puede invitar ni borrar clientes.":
+    "Log, edit and delete entries. Cannot invite people or delete clients.",
+  "Solo ver. No puede modificar nada.": "View only. Cannot change anything.",
+  "Invitar a alguien": "Invite someone",
+  "Crear invitación": "Create invitation",
+  "Creando…": "Creating…",
+  "Invitación para": "Invitation for",
+  "Cópialo y mándaselo. Este enlace no se vuelve a mostrar y caduca en 7 días.":
+    "Copy it and send it. This link is shown once and expires in 7 days.",
+  Copiar: "Copy",
+  Copiado: "Copied",
+  "Invitaciones pendientes": "Pending invitations",
+  "Ninguna.": "None.",
+  Revocar: "Revoke",
+  caduca: "expires",
+  caducada: "expired",
+  "Quitar acceso": "Revoke access",
+  "Dar acceso": "Grant access",
+  "sin acceso": "no access",
+  "tú": "you",
+  "Qué puede hacer cada rol": "What each role can do",
+
+  // Registro rápido y buscador
+  Buscar: "Search",
+  "Cliente, registro, hito o compromiso…": "Client, entry, milestone or commitment…",
+  "Nada encontrado.": "Nothing found.",
+  Cerrar: "Close",
+  "Elige un cliente": "Pick a client",
+  "Lo que acabas de saber, sin tener que buscar el cliente primero.":
+    "What you just found out, without hunting for the client first.",
+  "Todavía no hay clientes. Crea el primero para poder registrar algo.":
+    "No clients yet. Create the first one to be able to log anything.",
+
   // Preferencias
   Tema: "Theme",
   Idioma: "Language",

@@ -1,8 +1,10 @@
 import "server-only";
+import { cache } from "react";
 import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
 import { uno } from "./db";
+import { puedeEditar, puedeAdministrar, type Rol } from "./roles";
 
 const COOKIE = "pm_sesion";
 const DURACION_DIAS = 30;
@@ -15,7 +17,7 @@ function clave() {
   return new TextEncoder().encode(secreto);
 }
 
-export type Sesion = { id: string; email: string; nombre: string };
+export type Sesion = { id: string; email: string; nombre: string; rol: Rol };
 
 export async function verificarCredenciales(
   email: string,
@@ -26,9 +28,12 @@ export async function verificarCredenciales(
     email: string;
     nombre: string;
     password_hash: string;
-  }>("select id, email, nombre, password_hash from usuario where email = $1", [
-    email.trim().toLowerCase(),
-  ]);
+    rol: Rol;
+    activo: boolean;
+  }>(
+    "select id, email, nombre, password_hash, rol, activo from usuario where email = $1",
+    [email.trim().toLowerCase()],
+  );
 
   if (!usuario) {
     // Coste constante para no filtrar qué emails existen.
@@ -37,9 +42,14 @@ export async function verificarCredenciales(
   }
 
   const correcta = await bcrypt.compare(password, usuario.password_hash);
-  if (!correcta) return null;
+  if (!correcta || !usuario.activo) return null;
 
-  return { id: usuario.id, email: usuario.email, nombre: usuario.nombre };
+  return {
+    id: usuario.id,
+    email: usuario.email,
+    nombre: usuario.nombre,
+    rol: usuario.rol,
+  };
 }
 
 export async function crearSesion(sesion: Sesion) {
@@ -64,19 +74,57 @@ export async function cerrarSesion() {
   tarro.delete(COOKIE);
 }
 
-export async function sesionActual(): Promise<Sesion | null> {
+export const sesionActual = cache(async (): Promise<Sesion | null> => {
   const tarro = await cookies();
   const token = tarro.get(COOKIE)?.value;
   if (!token) return null;
 
+  let id: string;
   try {
     const { payload } = await jwtVerify(token, clave());
-    return {
-      id: String(payload.id),
-      email: String(payload.email),
-      nombre: String(payload.nombre),
-    };
+    id = String(payload.id);
   } catch {
     return null;
   }
+
+  // El rol y el alta se consultan en cada petición en vez de confiar en el
+  // token: quitarle permisos a alguien debe notarse al momento, no cuando
+  // caduque su sesión dentro de treinta días. `cache` evita repetir la
+  // consulta dentro de un mismo render.
+  const usuario = await uno<{
+    id: string;
+    email: string;
+    nombre: string;
+    rol: Rol;
+    activo: boolean;
+  }>("select id, email, nombre, rol, activo from usuario where id = $1", [id]);
+
+  if (!usuario || !usuario.activo) return null;
+
+  return {
+    id: usuario.id,
+    email: usuario.email,
+    nombre: usuario.nombre,
+    rol: usuario.rol,
+  };
+});
+
+/** Para las acciones de escritura. Lanza si quien llama no tiene permiso. */
+export async function exigirEditor(): Promise<Sesion> {
+  const sesion = await sesionActual();
+  if (!sesion) throw new Error("Sesión no válida");
+  if (!puedeEditar(sesion.rol)) {
+    throw new Error("Tu rol es de solo lectura: no puedes modificar nada.");
+  }
+  return sesion;
+}
+
+/** Para invitar, borrar clientes y tocar configuración. */
+export async function exigirAdmin(): Promise<Sesion> {
+  const sesion = await sesionActual();
+  if (!sesion) throw new Error("Sesión no válida");
+  if (!puedeAdministrar(sesion.rol)) {
+    throw new Error("Solo un administrador puede hacer esto.");
+  }
+  return sesion;
 }
