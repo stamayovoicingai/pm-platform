@@ -26,6 +26,21 @@ También sirven `abiertos de …`, `estado de …`, `qué tiene …` y, sin nomb
 Se exige una palabra de consulta además del nombre. *"Colsubsidio no ha podido salir por
 temas legales"* menciona al cliente pero es una nota que registrar, no una pregunta.
 
+**Preguntar cualquier cosa sobre lo registrado**
+
+> ¿por qué se movió la fecha de salida de Colsubsidio?
+
+Se arma el expediente del cliente —registros con sus hilos de actualización, hitos con el
+historial de cambios de fecha y su motivo, compromisos, métricas, línea base y contactos—
+y se responde con eso. Si algo no está registrado, se dice en vez de inventarlo.
+
+Una pregunta **nunca se registra**. Se detecta antes que el clasificador por el signo de
+interrogación o por empezar con una palabra interrogativa. *"El cliente preguntó cuándo
+salimos"* no empieza por una, así que sigue siendo una nota.
+
+Si la pregunta nombra un cliente, se usa su expediente completo; si no, una panorámica de
+todos. Dentro de un hilo abierto por una consulta, se usa el cliente de ese hilo.
+
 **Actuar sobre esa lista, respondiendo en el hilo**
 
 | Escribes | Pasa |

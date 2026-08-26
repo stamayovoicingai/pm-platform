@@ -121,3 +121,52 @@ export function interpretarAccion(texto: string): Accion | null {
 
   return null;
 }
+
+// ---------------------------------------------------------------- preguntas
+
+const INTERROGATIVOS = [
+  "por que",
+  "porque",
+  "cuando",
+  "quien",
+  "quienes",
+  "cuanto",
+  "cuantos",
+  "cuantas",
+  "que paso",
+  "que hubo",
+  "cual",
+  "cuales",
+  "donde",
+  "como",
+  "que",
+  "sabes",
+  "recuerdas",
+  "dime",
+];
+
+/**
+ * Detecta que es una pregunta antes de que el clasificador la convierta en una
+ * nota. Se pide señal explícita —signo de interrogación o palabra
+ * interrogativa al principio— porque "el cliente preguntó cuándo salimos" es
+ * una nota que registrar, no una pregunta al bot.
+ */
+export function esPregunta(texto: string): boolean {
+  const bruto = texto.trim();
+  if (bruto.includes("?") || bruto.startsWith("¿")) return true;
+
+  const limpio = normalizar(bruto);
+  return INTERROGATIVOS.some((p) => limpio.startsWith(`${p} `));
+}
+
+/** El cliente nombrado en la pregunta, si hay alguno. */
+export function clienteDeLaPregunta(
+  texto: string,
+  clientes: { id: string; nombre: string }[],
+): string | null {
+  const limpio = normalizar(texto);
+  const encontrado = clientes
+    .filter((c) => limpio.includes(normalizar(c.nombre)))
+    .sort((a, b) => b.nombre.length - a.nombre.length)[0];
+  return encontrado?.id ?? null;
+}

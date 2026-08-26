@@ -191,12 +191,15 @@ async function responderGlobal(hiloTs: string) {
 
 // ---------------------------------------------------------------- actuar
 
-export async function itemsDelHilo(hiloTs: string): Promise<Item[] | null> {
-  const fila = await uno<{ items: Item[] }>(
-    "select items from conversacion_slack where hilo_ts = $1",
+export async function conversacionDelHilo(hiloTs: string) {
+  return uno<{ items: Item[]; cliente_id: string | null }>(
+    "select items, cliente_id from conversacion_slack where hilo_ts = $1",
     [hiloTs],
   );
-  return fila?.items ?? null;
+}
+
+export async function itemsDelHilo(hiloTs: string): Promise<Item[] | null> {
+  return (await conversacionDelHilo(hiloTs))?.items ?? null;
 }
 
 export async function ejecutarAccion(accion: Accion, hiloTs: string) {

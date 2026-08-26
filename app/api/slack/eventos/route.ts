@@ -2,12 +2,18 @@ import { firmaValida, publicar, type Bloque } from "@/lib/slack/cliente";
 import { clasificar } from "@/lib/slack/clasificar";
 import { publicarAyuda } from "@/lib/slack/ayuda";
 import { pideAyuda } from "@/lib/slack/deteccion";
-import { interpretarConsulta, interpretarAccion } from "@/lib/slack/interpretar";
+import {
+  interpretarConsulta,
+  interpretarAccion,
+  esPregunta,
+  clienteDeLaPregunta,
+} from "@/lib/slack/interpretar";
 import {
   responderConsulta,
   ejecutarAccion,
-  itemsDelHilo,
+  conversacionDelHilo,
 } from "@/lib/slack/conversacion";
+import { responderPregunta } from "@/lib/slack/pregunta";
 import { proveedorActivo } from "@/lib/llm";
 import { sql, uno } from "@/lib/db";
 import { hoy, fechaCorta } from "@/lib/fechas";
@@ -95,11 +101,15 @@ async function procesar(
     // lista. En cualquier otro, callar: responder a todo convertiría cualquier
     // conversación entre personas en registros.
     if (hiloTs) {
-      const items = await itemsDelHilo(hiloTs);
-      if (!items) return;
+      const conv = await conversacionDelHilo(hiloTs);
+      if (!conv) return;
 
       const accion = interpretarAccion(texto);
-      if (accion) await ejecutarAccion(accion, hiloTs);
+      if (accion) {
+        await ejecutarAccion(accion, hiloTs);
+      } else if (esPregunta(texto)) {
+        await responderPregunta(texto, conv.cliente_id, hiloTs);
+      }
       return;
     }
 
@@ -117,6 +127,14 @@ async function procesar(
     const consulta = interpretarConsulta(texto, clientes);
     if (consulta) {
       await responderConsulta(consulta, canal, ts);
+      return;
+    }
+
+    // Una pregunta nunca se registra. Va antes del clasificador porque, si no,
+    // "¿por qué se movió la fecha de Colsubsidio?" acaba guardada como nota.
+    if (esPregunta(texto)) {
+      console.log("Slack: es una pregunta, se responde con el expediente");
+      await responderPregunta(texto, clienteDeLaPregunta(texto, clientes), ts);
       return;
     }
 

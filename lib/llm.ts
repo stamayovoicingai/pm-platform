@@ -43,10 +43,27 @@ export async function pedirJson(
   }
 }
 
+/** Igual que `pedirJson`, pero para respuestas en prosa. */
+export async function pedirTexto(
+  instrucciones: string,
+  mensaje: string,
+  maxTokens = 2000,
+): Promise<string> {
+  switch (proveedorActivo()) {
+    case "gemini":
+      return pedirAGemini(instrucciones, mensaje, maxTokens, false);
+    case "claude":
+      return pedirAClaude(instrucciones, mensaje, maxTokens);
+    default:
+      throw new Error("No hay proveedor de IA configurado.");
+  }
+}
+
 async function pedirAGemini(
   instrucciones: string,
   mensaje: string,
   maxTokens: number,
+  json = true,
 ): Promise<string> {
   const url =
     `https://generativelanguage.googleapis.com/v1beta/models/${MODELO_GEMINI}:generateContent`;
@@ -63,7 +80,7 @@ async function pedirAGemini(
       generationConfig: {
         temperature: 0,
         maxOutputTokens: maxTokens,
-        responseMimeType: "application/json",
+        ...(json ? { responseMimeType: "application/json" } : {}),
       },
     }),
   });

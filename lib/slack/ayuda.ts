@@ -46,7 +46,17 @@ export async function publicarAyuda(hiloTs?: string) {
     ),
 
     seccion(
-      "*3 · Actuar sobre esa lista, respondiendo en el hilo*\n" +
+      "*3 · Preguntar cualquier cosa sobre lo registrado*\n" +
+        `> ¿por qué se movió la fecha de salida de ${ejemplo}?\n` +
+        "> ¿cuándo sale Metlife?\n" +
+        "> ¿qué actualizaciones tiene el bloqueo del whitelisting?\n\n" +
+        "Busco en el expediente del cliente —registros, hilos de actualización, " +
+        "historial de cambios de fecha con su motivo, compromisos, métricas— y respondo. " +
+        "Si algo no está registrado, lo digo en vez de inventarlo.",
+    ),
+
+    seccion(
+      "*4 · Actuar sobre esa lista, respondiendo en el hilo*\n" +
         "> el 1 ya lo resolvieron, TP habilitó la IP\n" +
         "> cierra el 2\n" +
         "> borra el 3\n\n" +
@@ -55,7 +65,7 @@ export async function publicarAyuda(hiloTs?: string) {
     ),
 
     seccion(
-      "*4 · Registrar el día*\n" +
+      "*5 · Registrar el día*\n" +
         "A las 19:00 te aviso qué clientes faltan, con un botón que abre el formulario. " +
         "Una línea por cliente:\n" +
         "```\n" +
@@ -71,7 +81,7 @@ export async function publicarAyuda(hiloTs?: string) {
     ),
 
     seccion(
-      "*5 · Lo que te voy a mandar sin que lo pidas*\n" +
+      "*6 · Lo que te voy a mandar sin que lo pidas*\n" +
         "• *09:00* — hitos a 3 días, compromisos vencidos o que vencen, y lo abierto que sea grave\n" +
         "• *19:00* — qué falta por registrar del día\n" +
         "• *21:30* — solo si no registraste nada en todo el día\n" +
