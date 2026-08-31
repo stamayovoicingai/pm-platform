@@ -197,6 +197,38 @@ pierde, se revoca y se crea otro.
 El rol se consulta en cada petición, no se guarda en la sesión: quitarle permisos a
 alguien surte efecto al momento y no cuando caduque su sesión.
 
+## Sacar los datos
+
+En **Clientes**, el botón **Descargar todo** genera un ZIP con absolutamente todo lo
+registrado, en texto plano:
+
+```
+PM Platform 2026-08-31/
+  LEEME.txt                     qué hay dentro y cómo leerlo
+  Resumen.txt                   la cartera entera en una página
+  Clientes/
+    Colsubsidio.txt             línea base, hitos, compromisos, contactos,
+    Nestlé Ventas Outbound.txt  métricas y el timeline completo del cliente
+    ...
+  Datos/
+    timeline.csv                los mismos datos en CSV, para Excel o Sheets
+    hitos.csv
+    metricas-mensuales.csv
+    ...
+  Adjuntos/
+    Temas Generales/            los archivos subidos a los registros
+      Business Continuity Plan.pdf
+```
+
+La ficha de cada cliente está pensada para leerse tal cual: 76 columnas, fechas en
+`AAAA-MM-DD` y el timeline del registro más reciente al más antiguo, con las
+actualizaciones y los cambios de estado debajo de cada uno.
+
+Es una copia, no una integración: sirve para archivar un trimestre, para pasarle a
+alguien el estado de un cliente sin darle acceso a la plataforma, y para que los datos
+sigan siendo legibles el día que esta app no exista. Lo puede descargar cualquier rol,
+incluido Lector, porque exportar es leer.
+
 ## Pantallas
 
 - **Hoy** — la de la mañana.
@@ -204,6 +236,8 @@ alguien surte efecto al momento y no cuando caduque su sesión.
 - **Ficha de cliente** — registro rápido, timeline, hitos, compromisos, contactos, ajustes.
 - **Hitos** — todos los hitos abiertos y la estadística de movimientos.
 - **Compromisos** — todo lo pendiente, de todos los clientes.
+
+Desde **Clientes** también se descarga el ZIP con todo (ver arriba).
 
 ## Todavía no existe
 

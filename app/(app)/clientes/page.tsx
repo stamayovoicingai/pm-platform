@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { listarClientes } from "@/lib/consultas/clientes";
 import Pastilla from "@/components/Pastilla";
+import BotonExportar from "@/components/BotonExportar";
 import { Vacio } from "@/components/Seccion";
 import { ETIQUETA_FASE, FASES, colorFase, type Fase } from "@/lib/dominio";
 import { fechaCorta, textoRelativo, diasHasta } from "@/lib/fechas";
@@ -50,7 +51,10 @@ export default async function Clientes({
             {clientes.length} activo{clientes.length === 1 ? "" : "s"}
           </p>
         </div>
-        <Link href="/clientes/nuevo" className="boton shrink-0">{t("Nuevo cliente")}</Link>
+        <div className="flex items-center gap-2 shrink-0">
+          <BotonExportar />
+          <Link href="/clientes/nuevo" className="boton">{t("Nuevo cliente")}</Link>
+        </div>
       </div>
 
       <div className="flex gap-1.5 mb-4 overflow-x-auto pb-1">

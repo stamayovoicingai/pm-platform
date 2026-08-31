@@ -377,4 +377,11 @@ export const EN: Record<string, string> = {
   "Enviar el postmortem del incidente": "Send the incident postmortem",
   "Aprueba el guion": "Approves the script",
   "Falta aprobación del cliente": "Waiting on client approval",
+  // Export
+  "Descargar todo": "Download everything",
+  "Preparando…": "Preparing…",
+  Descargado: "Downloaded",
+  "No se pudo generar la descarga": "The download could not be generated",
+  "Descarga todo lo registrado en archivos de texto":
+    "Downloads everything recorded, as text files",
 };
