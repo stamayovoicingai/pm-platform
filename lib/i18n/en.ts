@@ -384,4 +384,15 @@ export const EN: Record<string, string> = {
   "No se pudo generar la descarga": "The download could not be generated",
   "Descarga todo lo registrado en archivos de texto":
     "Downloads everything recorded, as text files",
+  // Contactos generales
+  Agenda: "Directory",
+  "en más de un proyecto": "in more than one project",
+  "correos registrados": "emails on file",
+  "Buscar por nombre, rol, correo o proyecto": "Search by name, role, email or project",
+  "Nadie coincide con eso.": "Nobody matches that.",
+  "Ver los contactos de este proyecto": "See this project's contacts",
+  "Todas las personas registradas, con los proyectos en los que están.":
+    "Everyone on file, with the projects they belong to.",
+  "Todavía no hay contactos. Se añaden desde la ficha de cada cliente.":
+    "No contacts yet. They are added from each client's page.",
 };

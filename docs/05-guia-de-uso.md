@@ -197,6 +197,21 @@ pierde, se revoca y se crea otro.
 El rol se consulta en cada petición, no se guarda en la sesión: quitarle permisos a
 alguien surte efecto al momento y no cuando caduque su sesión.
 
+## La agenda
+
+**Contactos** reúne a todas las personas registradas en todos los proyectos, con la
+etiqueta del proyecto o proyectos en los que está cada una. Se filtra escribiendo —el
+nombre, el rol, el correo o el proyecto donde la conociste— y por lado.
+
+En la base un contacto pertenece a un cliente, así que la misma persona existe una vez
+por proyecto. Aquí se juntan **por nombre**, no por correo: el correo de una misma
+persona cambia entre proyectos (TP usa `@tp.com` y `@teleperformance.com`), y agrupar
+por correo la partiría en dos justo cuando lo que querías era verla una vez.
+
+Cuando alguien tiene varios correos registrados se muestran todos, marcados. Casi
+siempre es una ficha copiada con el buzón equivocado, y así se ve en lugar de quedar
+enterrada.
+
 ## Sacar los datos
 
 En **Clientes**, el botón **Descargar todo** genera un ZIP con absolutamente todo lo
@@ -236,6 +251,7 @@ incluido Lector, porque exportar es leer.
 - **Ficha de cliente** — registro rápido, timeline, hitos, compromisos, contactos, ajustes.
 - **Hitos** — todos los hitos abiertos y la estadística de movimientos.
 - **Compromisos** — todo lo pendiente, de todos los clientes.
+- **Contactos** — la agenda entera, con la etiqueta de cada proyecto.
 
 Desde **Clientes** también se descarga el ZIP con todo (ver arriba).
 

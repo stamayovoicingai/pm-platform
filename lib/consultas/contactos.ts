@@ -19,3 +19,26 @@ export async function contactosCliente(clienteId: string) {
     [clienteId],
   );
 }
+
+export type ContactoConCliente = ContactoFila & {
+  cliente_id: string;
+  cliente_nombre: string;
+  cliente_fase: import("../dominio").Fase;
+};
+
+/**
+ * Todos los contactos de todos los clientes activos, sin agrupar.
+ *
+ * La misma persona aparece una vez por proyecto, porque en la base un contacto
+ * pertenece a un cliente. Agruparlos en personas es cosa de `agruparContactos`.
+ */
+export async function todosLosContactos() {
+  return sql<ContactoConCliente>(
+    `select ct.id, ct.nombre, ct.rol, ct.lado, ct.email, ct.notas,
+            cl.id as cliente_id, cl.nombre as cliente_nombre, cl.fase as cliente_fase
+     from contacto ct
+     join cliente cl on cl.id = ct.cliente_id
+     where not cl.archivado
+     order by lower(ct.nombre), lower(cl.nombre)`,
+  );
+}

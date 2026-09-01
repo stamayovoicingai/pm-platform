@@ -21,6 +21,7 @@ const SECCIONES = [
   { href: "/metricas", etiqueta: "Métricas" },
   { href: "/hitos", etiqueta: "Hitos" },
   { href: "/compromisos", etiqueta: "Compromisos" },
+  { href: "/contactos", etiqueta: "Contactos" },
 ];
 
 function Item({
